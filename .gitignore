@@ -3,3 +3,14 @@
 ################################################################################
 
 /.vs
+/Polymost.dir
+/Debug
+/CMakeFiles
+ALL_BUILD.vcxproj
+ALL_BUILD.vcxproj.filters
+cmake_install.cmake
+Polymost.sln
+Polymost.vcxproj
+Polymost.vcxproj.filters
+CMakeSettings.json
+.gitignore
