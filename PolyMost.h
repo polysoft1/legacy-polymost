@@ -2,14 +2,16 @@
 #define POLYMOST_H
 
 #include "IProtocolPlugin.h"
+#include "IPlugin.h"
+#include <string>
 
 class PolyMost : public IProtocolPlugin {
 public:
-	string getName();
+	std::string getName();
 
 	bool initialize();
 
-	string getDatabaseName();
+	std::string getDatabaseName();
 
 	bool sendMessage(Message msg);
 };
