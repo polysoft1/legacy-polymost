@@ -1,10 +1,10 @@
 #ifndef POLYMOST
 #define POLYMOST
 
-#include "IProtocolPlugin.h"
 #include "PolyMost.h"
 
-string PolyMost::getName() {
+
+std::string PolyMost::getName() {
 	return "PolyMost";
 }
 
@@ -12,7 +12,7 @@ bool PolyMost::initialize() {
 	return false;
 }
 
-string PolyMost::getDatabaseName() {
+std::string PolyMost::getDatabaseName() {
 	return "polymost";
 }
 

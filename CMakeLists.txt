@@ -40,14 +40,12 @@ if(WIN32)
 	endforeach(DLL)
 endif()
 
-#add_library(PolyChat MODULE "../PolyChat/include/IProtocolPlugin.h")
-#target_include_directories(Polymost PUBLIC "../PolyChat/include/")
+#add_library(PolyChat MODULE "../PolyChat/include/IProtocolPlugin.h
 # Find the POCO paths and libs
 if(NOT DEFINED POLYCHAT_INCLUDE)
-        set(POLYCHAT_INCLUDE CACHE STRING "POLYCHAT_INCLUDE")
+	set(POLYCHAT_INCLUDE CACHE STRING "POLYCHAT_INCLUDE")
 endif()
 if(DEFINED POLYCHAT_INCLUDE)
-        set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};${POLYCHAT_INCLUDE})
-        message("CMAKE_PREFIX_PATH: " ${CMAKE_PREFIX_PATH})
+	target_include_directories(Polymost PUBLIC ${POLYCHAT_INCLUDE})
 endif()
 
