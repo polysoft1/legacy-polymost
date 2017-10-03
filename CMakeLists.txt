@@ -8,7 +8,7 @@ ADD_LIBRARY(Polymost SHARED PolyMost.cpp ConnectCommand.cpp)
 
 # define the project
 set(CMAKE_CXX_STANDARD 11)
-
+set (CMAKE_CXX_FLAGS "-std=gnu++11 ${CMAKE_CXX_FLAGS}")
 
 
 # Find the POCO paths and libs
