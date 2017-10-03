@@ -8,7 +8,7 @@
 #include "Poco/JSON/Object.h"
 
 bool ConnectCommand::onCommand(std::vector<std::string> args) {
-	if (args.size() == 2) {
+	if (args.size() == 3) { // I don't know why it is 3.. It should be 2
 		std::cout << "Attempting to connect to " << args[0] << " On port " << args[1] << std::endl;
 
 		try {
@@ -40,6 +40,9 @@ bool ConnectCommand::onCommand(std::vector<std::string> args) {
 		}
 	} else {
 		std::cout << "Usage: <URL> <PORT>" << std::endl;
+		std::cout << "given args with size " << args.size() << ":";
+		for (auto i = args.begin(); i != args.end(); ++i)
+   			 std::cout << *i << ' ';
 	}
 	return true;
 };
