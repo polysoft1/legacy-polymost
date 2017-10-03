@@ -9,7 +9,7 @@ class PolyMost : public IProtocolPlugin {
 public:
 	std::string getName();
 
-	bool initialize();
+	bool initialize(PolyChatCore* core);
 
 	std::string getDatabaseName();
 
