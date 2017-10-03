@@ -4,10 +4,10 @@ project(Polymost)
 
 include_directories(${PROJECT_BINARY_DIR})
 
-ADD_LIBRARY(Polymost SHARED PolyMost.cpp)
+ADD_LIBRARY(Polymost SHARED PolyMost.cpp ConnectCommand.cpp)
 
 # define the project
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_STANDARD 11)
 
 
 
@@ -26,10 +26,10 @@ endif()
 find_package(Poco REQUIRED Foundation Util Net Data DataSQLite XML JSON NetSSL)
 
 # link the app against POCO
-target_link_libraries(Polymost Poco::Foundation Poco::Util Poco::Net Poco::Data Poco::DataSQLite Poco::XML Poco::JSON Poco::NetSSL)
+target_link_libraries(Polymost Poco::Foundation Poco::Util Poco::Net Poco::Data Poco::DataSQLite Poco::XML Poco::JSON Poco::NetSSL Poco::Crypto)
 
 if(WIN32)
-	SET(DLLS PocoFoundation PocoUtil PocoNet PocoData PocoDataSQLite PocoXML PocoJSON PocoNetSSL)
+	SET(DLLS PocoFoundation PocoUtil PocoNet PocoData PocoDataSQLite PocoXML PocoJSON PocoNetSSL PocoCrypto)
 	foreach(DLL ${DLLS})
 		if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 			SET(DLL ${DLL}d)
@@ -46,6 +46,14 @@ if(NOT DEFINED POLYCHAT_INCLUDE)
 	set(POLYCHAT_INCLUDE CACHE STRING "POLYCHAT_INCLUDE")
 endif()
 if(DEFINED POLYCHAT_INCLUDE)
-	target_include_directories(Polymost PUBLIC ${POLYCHAT_INCLUDE})
+	#target_include_directories(Polymost PUBLIC ${POLYCHAT_INCLUDE})
+	include_directories(${POLYCHAT_INCLUDE})
+	target_link_libraries(Polymost ${POLYCHAT_INCLUDE}/PolyChatLib.lib)
 endif()
 
+#find_package(OpenSSL REQUIRED) 
+#if( OpenSSL_FOUND )
+#    include_directories(${OPENSSL_INCLUDE_DIRS})
+#    link_directories(${OPENSSL_LIBRARIES})
+#    message(STATUS "Using OpenSSL ${OPENSSL_VERSION} with directories \"${OPENSSL_INCLUDE_DIRS}\"")
+#endif()
