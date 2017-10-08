@@ -42,13 +42,13 @@ endif()
 
 #add_library(PolyChat MODULE "../PolyChat/include/IProtocolPlugin.h
 # Find the POCO paths and libs
-if(NOT DEFINED POLYCHAT_INCLUDE)
-	set(POLYCHAT_INCLUDE CACHE STRING "POLYCHAT_INCLUDE")
+if(NOT DEFINED POLYCHAT)
+	set(POLYCHAT CACHE STRING "POLYCHAT")
 endif()
-if(DEFINED POLYCHAT_INCLUDE)
+if(DEFINED POLYCHAT)
 	#target_include_directories(Polymost PUBLIC ${POLYCHAT_INCLUDE})
-	include_directories(${POLYCHAT_INCLUDE})
-	target_link_libraries(Polymost ${POLYCHAT_INCLUDE}/PolyChatLib.lib)
+	include_directories(${POLYCHAT}/include)
+	target_link_libraries(Polymost ${POLYCHAT}/target/PolyChat.lib)
 endif()
 
 #find_package(OpenSSL REQUIRED) 

@@ -2,7 +2,7 @@
 #define POLYMOST
 
 #include "PolyMost.h"
-#include "PolyChatCore.h"
+#include "Core.h"
 #include "ConnectCommand.h"
 #include <memory>
 
@@ -10,10 +10,9 @@ std::string PolyMost::getName() {
 	return "PolyMost";
 }
 
-bool PolyMost::initialize(PolyChatCore* core) {
+bool PolyMost::initialize(Core* core) {
 	// This is invalid (at least on Windows) because the DLL has its own memory space
-	PolyChatCore coreInstance = *core;
-	coreInstance.registerCommand(new ConnectCommand(), "connect");
+	core->registerCommand(new ConnectCommand(), "connect");
 
 	return false;
 }
