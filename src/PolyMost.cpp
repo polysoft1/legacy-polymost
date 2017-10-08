@@ -1,9 +1,9 @@
 #ifndef POLYMOST
 #define POLYMOST
 
-#include "PolyMost.h"
-#include "Core.h"
-#include "ConnectCommand.h"
+#include "headers/PolyMost.h"
+#include "headers/ConnectCommand.h"
+#include "include/Core.h"
 #include <memory>
 
 std::string PolyMost::getName() {
