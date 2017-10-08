@@ -1,4 +1,4 @@
-#include "ConnectCommand.h"
+#include "headers/ConnectCommand.h"
 #include <iostream>
 #include <string>
 #include <stdexcept>
@@ -37,7 +37,7 @@ bool ConnectCommand::onCommand(std::vector<std::string> args) {
 			while (std::getline(s, stringresponse)) {
 				std::cout << stringresponse << std::endl;
 			}
-		} catch (const std::invalid_argument& e) {
+		} catch (const std::invalid_argument&) {
 			std::cout << "Invalid port." << std::endl;
 		}
 	} else {

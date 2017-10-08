@@ -1,10 +1,20 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(Polymost)
+project(PolyMost)
+project(PolyMostStatic)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/arch)
+
 
 include_directories(${PROJECT_BINARY_DIR})
 
-ADD_LIBRARY(Polymost SHARED PolyMost.cpp ConnectCommand.cpp)
+set(src src/PolyMost.cpp src/ConnectCommand.cpp)
+ADD_LIBRARY(PolyMost SHARED ${src})
+ADD_LIBRARY(PolyMostStatic STATIC ${src})
+set_target_properties(PolyMost PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(PolyMostStatic PROPERTIES LINKER_LANGUAGE CXX)
 
 # define the project
 set(CMAKE_CXX_STANDARD 11)
@@ -26,29 +36,29 @@ endif()
 find_package(Poco REQUIRED Foundation Util Net Data DataSQLite XML JSON NetSSL)
 
 # link the app against POCO
-target_link_libraries(Polymost Poco::Foundation Poco::Util Poco::Net Poco::Data Poco::DataSQLite Poco::XML Poco::JSON Poco::NetSSL Poco::Crypto)
+target_link_libraries(PolyMost Poco::Foundation Poco::Util Poco::Net Poco::Data Poco::DataSQLite Poco::XML Poco::JSON Poco::NetSSL Poco::Crypto)
+target_link_libraries(PolyMostStatic Poco::Foundation Poco::Util Poco::Net Poco::Data Poco::DataSQLite Poco::XML Poco::JSON Poco::NetSSL Poco::Crypto)
 
-if(WIN32)
+if(false AND WIN32)
 	SET(DLLS PocoFoundation PocoUtil PocoNet PocoData PocoDataSQLite PocoXML PocoJSON PocoNetSSL PocoCrypto)
 	foreach(DLL ${DLLS})
 		if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 			SET(DLL ${DLL}d)
 		endif()
-		add_custom_command(TARGET Polymost POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+		add_custom_command(TARGET PolyMost POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
 			"${CMAKE_PREFIX_PATH}/bin/${DLL}.dll"
-			$<TARGET_FILE_DIR:Polymost>)
+			$<TARGET_FILE_DIR:PolyMost>)
 	endforeach(DLL)
 endif()
 
-#add_library(PolyChat MODULE "../PolyChat/include/IProtocolPlugin.h
 # Find the POCO paths and libs
 if(NOT DEFINED POLYCHAT)
 	set(POLYCHAT CACHE STRING "POLYCHAT")
 endif()
 if(DEFINED POLYCHAT)
 	#target_include_directories(Polymost PUBLIC ${POLYCHAT_INCLUDE})
-	include_directories(${POLYCHAT}/include)
-	target_link_libraries(Polymost ${POLYCHAT}/target/PolyChat.lib)
+	include_directories(${POLYCHAT})
+	target_link_libraries(PolyMost ${POLYCHAT}/arch/${CMAKE_BUILD_TYPE}/PolyChat.lib)
 endif()
 
 #find_package(OpenSSL REQUIRED) 
@@ -57,3 +67,22 @@ endif()
 #    link_directories(${OPENSSL_LIBRARIES})
 #    message(STATUS "Using OpenSSL ${OPENSSL_VERSION} with directories \"${OPENSSL_INCLUDE_DIRS}\"")
 #endif()
+
+# Packaging of plugin
+set(excutable_filename ${CMAKE_SHARED_LIBRARY_PREFIX}PolyMost${CMAKE_SHARED_LIBRARY_SUFFIX})
+set(directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/)
+file(MD5 ${directory}${excutable_filename} exe_md5)
+file(SHA1 ${directory}${excutable_filename} exe_sha1)
+file(SHA512 ${directory}${excutable_filename} exe_sha512)
+set(excutable_details "<excutable os=\"${CMAKE_SYSTEM_NAME}\">\n\t\t<filename>${excutable_filename}</filename>\n\t\t<checksum type=\"md5\">${exe_md5}</checksum>\n\t\t<checksum type=\"sha1\">${exe_sha1}</checksum>\n\t\t<checksum type=\"sha512\">${exe_sha512}</checksum>\n\t</excutable>")
+
+message(${excutable_details})
+
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/resources/plugin.xml" xml)
+STRING(REPLACE "<!-- Excutable -->" "${excutable_details}" xml_out ${xml})
+file(WRITE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}//plugin.xml" "${xml_out}")
+
+add_custom_target(create_zip
+	ALL COMMAND ${CMAKE_COMMAND} -E tar "cfv" "PolyMost.zip" --format=zip "${excutable_filename}" "plugin.xml"
+	WORKING_DIRECTORY ${directory})
+add_dependencies(create_zip PolyMost)
