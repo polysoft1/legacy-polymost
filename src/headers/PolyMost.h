@@ -15,11 +15,4 @@ public:
 
 	bool sendMessage(Message msg);
 };
-
-#if defined (BUILD_SHARED_LIBS)
-POCO_BEGIN_MANIFEST(IPlugin)
-	POCO_EXPORT_CLASS(PolyMost)
-POCO_END_MANIFEST
-#endif
-
 #endif

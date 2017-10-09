@@ -82,7 +82,12 @@ file(READ "${CMAKE_CURRENT_SOURCE_DIR}/resources/plugin.xml" xml)
 STRING(REPLACE "<!-- Excutable -->" "${excutable_details}" xml_out ${xml})
 file(WRITE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}//plugin.xml" "${xml_out}")
 
+#This is just to make sure that the zip gets generated.
+add_custom_target(xml_creation
+    ALL COMMAND cmake -E echo "XML Created"
+)
+
 add_custom_target(create_zip
 	ALL COMMAND ${CMAKE_COMMAND} -E tar "cfv" "PolyMost.zip" --format=zip "${excutable_filename}" "plugin.xml"
 	WORKING_DIRECTORY ${directory})
-add_dependencies(create_zip PolyMost)
+add_dependencies(create_zip PolyMost xml_creation)
