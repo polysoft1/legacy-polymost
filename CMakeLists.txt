@@ -58,7 +58,7 @@ endif()
 if(DEFINED POLYCHAT)
 	#target_include_directories(Polymost PUBLIC ${POLYCHAT_INCLUDE})
 	include_directories(${POLYCHAT})
-	target_link_libraries(PolyMost ${POLYCHAT}/arch/${CMAKE_BUILD_TYPE}/PolyChat.lib)
+	target_link_libraries(PolyMost ${POLYCHAT}/arch/${CMAKE_BUILD_TYPE}/${CMAKE_STATIC_LIBRARY_PREFIX}PolyChat${CMAKE_STATIC_LIBRARY_SUFFIX})
 endif()
 
 #find_package(OpenSSL REQUIRED) 
@@ -70,24 +70,26 @@ endif()
 
 # Packaging of plugin
 set(excutable_filename ${CMAKE_SHARED_LIBRARY_PREFIX}PolyMost${CMAKE_SHARED_LIBRARY_SUFFIX})
-set(directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/)
-file(MD5 ${directory}${excutable_filename} exe_md5)
-file(SHA1 ${directory}${excutable_filename} exe_sha1)
-file(SHA512 ${directory}${excutable_filename} exe_sha512)
+set(directory ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+#file(MD5 ${directory}${excutable_filename} exe_md5)
+#file(SHA1 ${directory}${excutable_filename} exe_sha1)
+#file(SHA512 ${directory}${excutable_filename} exe_sha512)
 set(excutable_details "<excutable os=\"${CMAKE_SYSTEM_NAME}\">\n\t\t<filename>${excutable_filename}</filename>\n\t\t<checksum type=\"md5\">${exe_md5}</checksum>\n\t\t<checksum type=\"sha1\">${exe_sha1}</checksum>\n\t\t<checksum type=\"sha512\">${exe_sha512}</checksum>\n\t</excutable>")
 
 message(${excutable_details})
 
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/resources/plugin.xml" xml)
 STRING(REPLACE "<!-- Excutable -->" "${excutable_details}" xml_out ${xml})
-file(WRITE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}//plugin.xml" "${xml_out}")
+set(xml ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/plugin.xml)
+file(WRITE "${xml}" "${xml_out}")
 
 #This is just to make sure that the zip gets generated.
 add_custom_target(xml_creation
     ALL COMMAND cmake -E echo "XML Created"
 )
 
+message(${directory})
 add_custom_target(create_zip
-	ALL COMMAND ${CMAKE_COMMAND} -E tar "cfv" "PolyMost.zip" --format=zip "${excutable_filename}" "plugin.xml"
+	ALL COMMAND ${CMAKE_COMMAND} -E tar "cfv" "PolyMost.zip" --format=zip "${excutable_filename}" "${xml}"
 	WORKING_DIRECTORY ${directory})
 add_dependencies(create_zip PolyMost xml_creation)
