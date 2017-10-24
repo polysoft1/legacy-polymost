@@ -71,9 +71,9 @@ endif()
 # Packaging of plugin
 set(excutable_filename ${CMAKE_SHARED_LIBRARY_PREFIX}PolyMost${CMAKE_SHARED_LIBRARY_SUFFIX})
 set(directory ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-#file(MD5 ${directory}${excutable_filename} exe_md5)
-#file(SHA1 ${directory}${excutable_filename} exe_sha1)
-#file(SHA512 ${directory}${excutable_filename} exe_sha512)
+file(MD5 ${directory}/${excutable_filename} exe_md5)
+file(SHA1 ${directory}/${excutable_filename} exe_sha1)
+file(SHA512 ${directory}/${excutable_filename} exe_sha512)
 set(excutable_details "<excutable os=\"${CMAKE_SYSTEM_NAME}\">\n\t\t<filename>${excutable_filename}</filename>\n\t\t<checksum type=\"md5\">${exe_md5}</checksum>\n\t\t<checksum type=\"sha1\">${exe_sha1}</checksum>\n\t\t<checksum type=\"sha512\">${exe_sha512}</checksum>\n\t</excutable>")
 
 message(${excutable_details})
