@@ -18,7 +18,6 @@ std::string PolyMost::getName() {
 }
 
 bool PolyMost::initialize(Core* core) {
-	// This is invalid (at least on Windows) because the DLL has its own memory space
 	core->registerCommand(new ConnectCommand(), "connect");
 
 	return false;
