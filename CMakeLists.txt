@@ -3,13 +3,20 @@ cmake_minimum_required(VERSION 3.0)
 project(PolyMost)
 project(PolyMostStatic)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/target/)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/target/)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/target/)
+set(OUTPUT_DIR ${CMAKE_HOME_DIRECTORY}/target/)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_DIR})
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${OUTPUT_DIR})
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${OUTPUT_DIR})
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
+SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${OUTPUT_DIR})
+SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
 
 set(excutable_filename ${CMAKE_SHARED_LIBRARY_PREFIX}PolyMost${CMAKE_SHARED_LIBRARY_SUFFIX})
-set(directory ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-set(xml_file ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/plugin.xml)
+set(xml_file ${OUTPUT_DIR}/plugin.xml)
 
 
 include_directories(${PROJECT_BINARY_DIR})
@@ -19,10 +26,6 @@ ADD_LIBRARY(PolyMost SHARED ${src})
 ADD_LIBRARY(PolyMostStatic STATIC ${src})
 set_target_properties(PolyMost PROPERTIES LINKER_LANGUAGE CXX)
 set_target_properties(PolyMostStatic PROPERTIES LINKER_LANGUAGE CXX)
-
-if(MSVC)
-	set_target_properties (PolyMost PROPERTIES <CONFIG>_POSTFIX "WORKS")
-endif(MSVC)
 
 # define the project
 set(CMAKE_CXX_STANDARD 11)
@@ -66,7 +69,7 @@ endif()
 if(DEFINED POLYCHAT)
 	#target_include_directories(Polymost PUBLIC ${POLYCHAT_INCLUDE})
 	include_directories(${POLYCHAT})
-	target_link_libraries(PolyMost ${POLYCHAT}/arch/${CMAKE_BUILD_TYPE}/${CMAKE_STATIC_LIBRARY_PREFIX}PolyChat${CMAKE_STATIC_LIBRARY_SUFFIX})
+	target_link_libraries(PolyMost ${POLYCHAT}/target/${CMAKE_STATIC_LIBRARY_PREFIX}PolyChat${CMAKE_STATIC_LIBRARY_SUFFIX})
 endif()
 
 #find_package(OpenSSL REQUIRED) 
@@ -77,10 +80,10 @@ endif()
 #endif()
 
 # Packaging of plugin
-if(EXISTS ${directory}/${excutable_filename})
-	file(MD5 ${directory}/${excutable_filename} exe_md5)
-	file(SHA1 ${directory}/${excutable_filename} exe_sha1)
-	file(SHA512 ${directory}/${excutable_filename} exe_sha512)
+if(EXISTS ${OUTPUT_DIR}/${excutable_filename})
+	file(MD5 ${OUTPUT_DIR}/${excutable_filename} exe_md5)
+	file(SHA1 ${OUTPUT_DIR}/${excutable_filename} exe_sha1)
+	file(SHA512 ${OUTPUT_DIR}/${excutable_filename} exe_sha512)
 	set(excutable_details "<excutable os=\"${CMAKE_SYSTEM_NAME}\">\n\t\t<filename>${excutable_filename}</filename>\n\t\t<checksum type=\"md5\">${exe_md5}</checksum>\n\t\t<checksum type=\"sha1\">${exe_sha1}</checksum>\n\t\t<checksum type=\"sha512\">${exe_sha512}</checksum>\n\t</excutable>")
 else()
 	message(WARNING "The excutable does not exist! Skipping zip.")
@@ -97,8 +100,8 @@ add_custom_target(xml_creation
 
 
 message("Excutable: ${excutable_filename}")
-message("Directory: ${directory}")
+message("Directory: ${OUTPUT_DIR}")
 add_custom_target(create_zip
 	ALL COMMAND ${CMAKE_COMMAND} -E tar "cfv" "PolyMost.zip" --format=zip "${excutable_filename}" "${xml_file}"
-	WORKING_DIRECTORY ../${directory})
+	WORKING_DIRECTORY ${OUTPUT_DIR})
 add_dependencies(create_zip PolyMost xml_creation)

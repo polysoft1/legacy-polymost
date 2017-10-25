@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 <plugin>
 	<plugin_name>PolyMost</plugin_name>
-	
+	<excutable os="Windows">
+		<filename>PolyMost.dll</filename>
+		<checksum type="md5">22f95578d08814341b62472595b7cefe</checksum>
+		<checksum type="sha1">cf25baadb0264b759e06a5f2da0a3aeeea1ef89a</checksum>
+		<checksum type="sha512">1831fe321cd0ab2a7db3f67b42c08b8a0bd9210a5e02351d9840201bb474ab28924fea60e88d914131388a00c53f92d466f8b6c40d6f53c22bdccb40299f7b56</checksum>
+	</excutable>
 	
 </plugin>
