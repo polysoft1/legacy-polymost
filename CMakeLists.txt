@@ -69,7 +69,7 @@ endif()
 if(DEFINED POLYCHAT)
 	#target_include_directories(Polymost PUBLIC ${POLYCHAT_INCLUDE})
 	include_directories(${POLYCHAT})
-	target_link_libraries(PolyMost ${POLYCHAT}/target/${CMAKE_SHARED_LIBRARY_PREFIX}PolyChat${CMAKE_SHARED_LIBRARY_SUFFIX})
+	#target_link_libraries(PolyMost ${POLYCHAT}/target/${CMAKE_SHARED_LIBRARY_PREFIX}PolyChat${CMAKE_SHARED_LIBRARY_SUFFIX})
 endif()
 
 #find_package(OpenSSL REQUIRED) 
@@ -80,7 +80,7 @@ endif()
 #endif()
 
 # Packaging of plugin
-if(EXISTS ${OUTPUT_DIR}/${excutable_filename})
+if(EXISTS ${OUTPUT_DIR}${excutable_filename})
 	file(MD5 ${OUTPUT_DIR}/${excutable_filename} exe_md5)
 	file(SHA1 ${OUTPUT_DIR}/${excutable_filename} exe_sha1)
 	file(SHA512 ${OUTPUT_DIR}/${excutable_filename} exe_sha512)
