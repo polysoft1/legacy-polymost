@@ -1,6 +1,13 @@
 ﻿#Ignore the build directory
 build/
-target/
+target/*
+
+#My QOL scripts
+makefile
+
+Win32/
+PolyMostStatic.dir/
+
 
 ################################################################################
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
