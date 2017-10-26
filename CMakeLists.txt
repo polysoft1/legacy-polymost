@@ -69,7 +69,7 @@ endif()
 if(DEFINED POLYCHAT)
 	#target_include_directories(Polymost PUBLIC ${POLYCHAT_INCLUDE})
 	include_directories(${POLYCHAT})
-	target_link_libraries(PolyMost ${POLYCHAT}/target/${CMAKE_STATIC_LIBRARY_PREFIX}PolyChat${CMAKE_STATIC_LIBRARY_SUFFIX})
+	target_link_libraries(PolyMost ${POLYCHAT}/target/${CMAKE_SHARED_LIBRARY_PREFIX}PolyChat${CMAKE_SHARED_LIBRARY_SUFFIX})
 endif()
 
 #find_package(OpenSSL REQUIRED) 

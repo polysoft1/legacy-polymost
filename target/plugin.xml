@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <plugin>
 	<plugin_name>PolyMost</plugin_name>
-	<excutable os="Windows">
-		<filename>PolyMost.dll</filename>
-		<checksum type="md5">22f95578d08814341b62472595b7cefe</checksum>
-		<checksum type="sha1">cf25baadb0264b759e06a5f2da0a3aeeea1ef89a</checksum>
-		<checksum type="sha512">1831fe321cd0ab2a7db3f67b42c08b8a0bd9210a5e02351d9840201bb474ab28924fea60e88d914131388a00c53f92d466f8b6c40d6f53c22bdccb40299f7b56</checksum>
+	<excutable os="Linux">
+		<filename>libPolyMost.so</filename>
+		<checksum type="md5">e6629b80e43f14b90dec3b44c0fac36d</checksum>
+		<checksum type="sha1">fe60eec8920ca8469d20ee36eab67062621ce58c</checksum>
+		<checksum type="sha512">6a25589ad1836b737297dffde36eed1f0692860ba35ea9bb90d6909d2ea52f77ecd830635b2d780e0f30deb20a01091b60f481774366b9a34f05f53e52482528</checksum>
 	</excutable>
 	
 </plugin>
