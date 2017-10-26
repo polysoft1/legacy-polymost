@@ -1,6 +1,0 @@
-﻿  Building Custom Rule C:/Users/LAPTOP/Source/Repos/polymost/CMakeLists.txt
-  CMake does not need to re-run because C:/Users/LAPTOP/Source/Repos/polymost/build/CMakeFiles/generate.stamp is up-to-date.
-  PolyMost.cpp
-  ConnectCommand.cpp
-  Generating Code...
-  PolyMostStatic.vcxproj -> C:\Users\LAPTOP\Source\Repos\polymost\target\Debug\PolyMostStatic.lib
