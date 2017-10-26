@@ -33,7 +33,7 @@ add_custom_target(xml_creation)
 add_dependencies(xml_creation PolyMost PolyMostStatic)
 add_custom_command(TARGET xml_creation
 	POST_BUILD
-	COMMAND cmake -DHOME="${CMAKE_HOME_DIRECTORY}" -DEXECUTABLE="${executable_filename}" -DOUT_DIR="${OUTPUT_DIR}" -DXML_FILE="plugin.xml" -P ${CMAKE_HOME_DIRECTORY}/xmlcreate.cmake
+	COMMAND cmake -DHOME="${CMAKE_HOME_DIRECTORY}" -DEXECUTABLE="${executable_filename}" -DOUT_DIR="${OUTPUT_DIR}" -DXML_FILE="plugin.xml" -DCMAKE_SYSTEM_NAME="${CMAKE_SYSTEM_NAME}" -P ${CMAKE_HOME_DIRECTORY}/xmlcreate.cmake
 ) 
 
 # define the project
