@@ -3,6 +3,7 @@
 
 #include "headers/PolyMost.h"
 #include "headers/ConnectCommand.h"
+#include "headers/PolyMostCommand.h"
 #include "include/Core.h"
 #include <memory>
 
@@ -19,6 +20,8 @@ std::string PolyMost::getName() {
 
 bool PolyMost::initialize(Core* core) {
 	core->registerCommand(new ConnectCommand(), "connect");
+	core->registerCommand(new PolyMostCommand(*this), "mattermost");
+	core->registerCommand(new PolyMostCommand(*this), "polymost"); // alias
 
 	return false;
 }

@@ -14,5 +14,9 @@ public:
 	std::string getDatabaseName();
 
 	bool sendMessage(Message msg);
+	std::string token;// TODO: this is temporary! Do not leave it like this!
+	std::string team;// TODO: this is temporary! Do not leave it like this!
+	std::string user;// TODO: this is temporary! Do not leave it like this!
+	std::string channel;// TODO: this is temporary! Do not leave it like this!
 };
 #endif
