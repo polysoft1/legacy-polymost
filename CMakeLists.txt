@@ -23,7 +23,7 @@ include_directories(${PROJECT_BINARY_DIR})
 
 
 
-set(src src/PolyMost.cpp src/ConnectCommand.cpp)
+set(src src/PolyMost.cpp src/ConnectCommand.cpp src/PolyMostCommand.cpp)
 ADD_LIBRARY(PolyMost SHARED ${src})
 ADD_LIBRARY(PolyMostStatic STATIC ${src})
 set_target_properties(PolyMost PROPERTIES LINKER_LANGUAGE CXX)
