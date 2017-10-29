@@ -20,14 +20,22 @@ set(xml_file ${OUTPUT_DIR}/plugin.xml)
 
 
 include_directories(${PROJECT_BINARY_DIR})
+find_package(Protobuf REQUIRED)
+protobuf_generate_cpp(
+	PROTO_SRC
+	PROTO_HDR
+	"polymost.proto"
+)
 
 
-
-set(src src/PolyMost.cpp src/ConnectCommand.cpp src/PolyMostCommand.cpp)
+set(src src/PolyMost.cpp src/ConnectCommand.cpp src/PolyMostCommand.cpp ${PROTO_SRC})
 ADD_LIBRARY(PolyMost SHARED ${src})
 ADD_LIBRARY(PolyMostStatic STATIC ${src})
 set_target_properties(PolyMost PROPERTIES LINKER_LANGUAGE CXX)
 set_target_properties(PolyMostStatic PROPERTIES LINKER_LANGUAGE CXX)
+
+target_link_libraries(PolyMost ${PROTOBUF_LIBRARIES})
+target_link_libraries(PolyMostStatic ${PROTOBUF_LIBRARIES})
 
 add_custom_target(xml_creation)
 add_dependencies(xml_creation PolyMost PolyMostStatic)
