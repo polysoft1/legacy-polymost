@@ -5,7 +5,10 @@
 #include <string>
 #include <vector>
 #include "PolyMost.h"
-#include "polymost.pb.h"
+#include "headers/MattermostServer.h"
+#include "headers/MattermostUser.h"
+#include "google/protobuf/util/json_util.h"
+
 
 class PolyMostCommand : public ICommand {
 public:
@@ -16,8 +19,10 @@ public:
 private:
 	PolyMost& main;
 	
-	polymost::user user;
-	polymost::server server;
+	MattermostUser* user;
+	MattermostServer* server;
+	google::protobuf::util::JsonPrintOptions printOptions;
+	google::protobuf::util::JsonParseOptions parseOptions;
 
 	bool loginCommand(std::vector<std::string>);
 	bool listTeamsCommand(std::vector<std::string>);
