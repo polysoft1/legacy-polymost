@@ -1,0 +1,104 @@
+syntax="proto2";
+
+package mattermost;
+
+message Error {
+	optional int32 status_code = 1;
+	optional string id = 2;
+	optional string message = 3;
+	optional string request_id = 4;
+}
+
+message Login {
+	required string login_id = 1;
+	required string password = 2;
+	optional string token = 3;
+}
+
+message User {
+	required string id = 1;
+	optional uint64 create_at = 2;
+	optional uint64 update_at = 3;
+	optional uint64 delete_at = 4;
+	optional string username = 5;
+	optional string first_name = 6;
+	optional string last_name = 7;
+	optional string nickname = 8;
+	optional string email = 9;
+	optional bool email_verified = 10;
+	optional string auth_service = 11;
+	optional string roles = 12;
+	optional string locale = 13;
+	optional NotifyProps notify_props = 14;
+	optional string props = 15;
+	optional uint64 last_password_update = 16;
+	optional uint64 last_picture_update = 17;
+	optional int32 failed_attempts = 18;
+	optional bool mfa_active = 19;
+}
+
+message NotifyProps {
+	optional string email = 1;
+	optional string push = 2;
+	optional string desktop = 3;
+	optional string desktop_sound = 4;
+	optional string mention_keys = 5;
+	optional string channel = 6;
+	optional string first_name = 7;
+}
+
+message Team {
+  optional string id = 1;
+  optional uint64 create_at = 2;
+  optional uint64 update_at = 3;
+  optional uint64 delete_at = 4;
+  optional string display_name = 5;
+  optional string name = 6;
+  optional string description = 7;
+  optional string email = 8;
+  optional string type = 9;
+  optional string allowed_domains = 10;
+  optional string invite_id = 11;
+  optional bool allow_open_invite = 12;
+}
+
+message MultiPage {
+	optional uint32 page = 1;
+	optional uint32 per_page = 2;
+}
+
+message Channel {
+	optional string id = 1;
+	optional uint64 create_at = 2;
+	optional uint64 update_at = 3;
+	optional uint64 delete_at = 4;
+	optional string team_id = 5;
+	optional string type = 6;
+	optional string display_name = 7;
+	optional string name = 8;
+	optional string header = 9;
+	optional string purpose = 10;
+	optional uint64 last_post_at = 11;
+	optional uint64 total_msg_count = 12;
+	optional uint64 extra_update_at = 13;
+	optional string creator_id = 14;
+}
+
+message Post {
+  optional string id = 1;
+  optional uint64 create_at = 2;
+  optional uint64 update_at = 3;
+  optional uint64 delete_at = 4;
+  optional string user_id = 5;
+  optional string channel_id = 6;
+  optional string root_id = 7;
+  optional string parent_id = 8;
+  optional string original_id = 9;
+  optional string message = 10;
+  optional string type = 11;
+  //"props": {},
+  optional string hashtag = 13;
+  repeated string filenames = 14;
+  repeated string file_ids = 15;
+  optional string pending_post_id = 16;
+}
