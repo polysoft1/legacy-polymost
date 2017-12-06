@@ -1,5 +1,6 @@
 project(PolyMost)
 
+include_directories(${POLYCHAT})
 set(executable_filename ${CMAKE_SHARED_LIBRARY_PREFIX}PolyMost${CMAKE_SHARED_LIBRARY_SUFFIX})
 set(xml_file ${OUTPUT_DIR}/plugin.xml)
 
@@ -16,6 +17,12 @@ get_target_property(DYN_INCLUDE_DIRS PolyMost INCLUDE_DIRECTORIES)
 list(APPEND DYN_INCLUDE_DIRS ${Protobuf_INCLUDE_DIRS})
 list(APPEND DYN_INCLUDE_DIRS ${PROJECT_SOURCE_DIR})
 list(APPEND DYN_INCLUDE_DIRS ${PROJECT_BINARY_DIR})
+#if(DEFINED POLYCHAT)
+	#target_include_directories(Polymost PUBLIC ${POLYCHAT_INCLUDE})
+	#list(APPEND DYN_INCLUDE_DIRS ${POLYCHAT})
+	#message("Including ${POLYCHAT}")
+	#target_link_libraries(PolyMost ${POLYCHAT}/target/${CMAKE_SHARED_LIBRARY_PREFIX}PolyChat${CMAKE_SHARED_LIBRARY_SUFFIX})
+#endif()
 set_target_properties(PolyMost PROPERTIES INCLUDE_DIRECTORIES "${DYN_INCLUDE_DIRS}")
 
 add_custom_target(xml_creation)
