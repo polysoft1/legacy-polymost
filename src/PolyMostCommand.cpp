@@ -9,6 +9,7 @@
 #include "Poco/Net/HTTPClientSession.h"
 #include "Poco/Net/HTTPRequest.h"
 #include "Poco/Net/HTTPResponse.h"
+#include "Poco/JSON/Stringifier.h"
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/String.h"
@@ -191,7 +192,7 @@ bool PolyMostCommand::listTeamsCommand(std::vector<std::string> args) {
 				Poco::JSON::Parser parser;
 				Poco::Dynamic::Var parsed = parser.parse(s);
 
-				Poco::JSON::Stringifier::stringify(parsed, true, std::cout, 1);
+				Poco::JSON::Stringifier::stringify(parsed, std::cout, 1);
 				/*Poco::JSON::Parser parser;
 				Poco::Dynamic::Var parsed = parser.parse(s);
 
@@ -272,7 +273,7 @@ bool PolyMostCommand::listChannelsCommand(std::vector<std::string> args) {
 		Poco::Dynamic::Var parsed = parser.parse(s);
 
 		if (response.getStatus() == Poco::Net::HTTPResponse::HTTP_OK) {
-			Poco::JSON::Stringifier::stringify(parsed, true, std::cout, 1);
+			Poco::JSON::Stringifier::stringify(parsed, std::cout, 1);
 			std::cout << std::endl;
 		} else {
 			Poco::JSON::Object::Ptr userObjectJSON = parsed.extract<Poco::JSON::Object::Ptr>();
