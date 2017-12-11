@@ -18,24 +18,13 @@ std::string PolyMost::getName() {
 }
 
 PolyMost::~PolyMost() {
-	if (core != nullptr) {
-		ICommand* connectCommand = core->unregisterCommand("connect");
-		ICommand* mattermostCommand = core->unregisterCommand("mattermost");
-		core->unregisterCommand("polymost"); // Don't store to variable due to alias = same thing
-		if (connectCommand != nullptr) {
-			delete connectCommand;
-		}
-		if (mattermostCommand != nullptr) {
-			delete mattermostCommand;
-		}
-	}
 
 }
 
 bool PolyMost::initialize(Core* core) {
-	core->registerCommand(new ConnectCommand(), "connect");
-	core->registerCommand(new PolyMostCommand(*this), "mattermost");
-	core->registerCommand(new PolyMostCommand(*this), "polymost"); // alias
+	core->getCommandHandler().registerCommand(new ConnectCommand(), "connect", this);
+	core->getCommandHandler().registerCommand(new PolyMostCommand(*this), "mattermost", this);
+	core->getCommandHandler().registerCommand(new PolyMostCommand(*this), "polymost", this); // alias
 	this->core = core;
 
 	return false;
