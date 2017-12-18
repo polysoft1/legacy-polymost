@@ -5,24 +5,29 @@
 #include "include/IPlugin.h"
 #include "include/Core.h"
 #include <string>
-
+#include <vector>
 class PolyMost : public IProtocolPlugin {
 public:
+	PolyMost();
+
 	~PolyMost();
 
-	std::string getName();
+	virtual std::string getName();
 
-	bool initialize(Core* core);
+	virtual bool initialize(Core* core);
 
-	std::string getDatabaseName();
+	virtual std::string getDatabaseName() const;
 
-	bool sendMessage(Message msg);
 	std::string token;// TODO: this is temporary! Do not leave it like this!
 	std::string team;// TODO: this is temporary! Do not leave it like this!
 	std::string user;// TODO: this is temporary! Do not leave it like this!
 	std::string channel;// TODO: this is temporary! Do not leave it like this!
 
+	virtual void login(std::map<std::string, std::string> fields);
+	virtual const std::vector<LoginField> loginFields() const { return loginFieldsList; };
+
 private:
 	Core* core = nullptr;
+	std::vector<LoginField> loginFieldsList;
 };
 #endif
