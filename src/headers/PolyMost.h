@@ -4,7 +4,6 @@
 #include "include/IProtocolPlugin.h"
 #include "include/IPlugin.h"
 #include "include/Core.h"
-#include "include/Registrant.h"
 #include <string>
 #include <vector>
 
