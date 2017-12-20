@@ -16,8 +16,9 @@ set(src src/PolyMost.cpp src/ConnectCommand.cpp src/PolyMostCommand.cpp)
 include_directories(src)
 
 # define the project
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "-std=gnu++11 ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(DEFINED POCO)
 	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};${POCO})
