@@ -35,6 +35,7 @@ bool PolyMost::initialize(Core* core) {
 	core->getCommandHandler().registerCommand(new PolyMostCommand(*this), "polymost", this); // alias
 	this->core = core;
 	std::map<std::string, std::string> map_;
+
 	login(map_);
 
 	return false;
@@ -46,7 +47,7 @@ std::string PolyMost::getDatabaseName() const {
 
 void PolyMost::login(std::map<std::string, std::string> fields) {
 	MattermostAccount account;
-	LoginSuccessNotification notification(&account);
+	Notification& notification = LoginSuccessNotification(&account);
 
 	core->getNotificationHandler().notify(&notification);
 }
