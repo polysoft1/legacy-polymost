@@ -47,7 +47,7 @@ std::string PolyMost::getDatabaseName() const {
 
 void PolyMost::login(std::map<std::string, std::string> fields) {
 	MattermostAccount account;
-	Notification& notification = LoginSuccessNotification(&account);
+	Notification notification = LoginSuccessNotification(&account);
 
 	core->getNotificationHandler().notify(&notification);
 }
