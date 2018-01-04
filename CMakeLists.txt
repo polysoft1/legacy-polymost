@@ -50,5 +50,13 @@ protobuf_generate_cpp(
 	"mattermost.proto"
 )
 
-#include("${CMAKE_CURRENT_SOURCE_DIR}/static.cmake")
+
+if(DEFINED CURLPP) 
+	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};${CURLPP})
+	set(CURLPP_INCLUDE ${CURLPP}/include)
+	set(CURLPP_LIB ${CURLPP}/lib)
+endif()
+message("INCLUDE: " ${CURLPP_INCLUDE})
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/static.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/shared.cmake")
