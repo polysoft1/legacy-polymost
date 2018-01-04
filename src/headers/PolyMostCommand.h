@@ -8,6 +8,7 @@
 #include "headers/MattermostServer.h"
 #include "headers/MattermostUser.h"
 #include "google/protobuf/util/json_util.h"
+#include "Poco/SharedPtr.h"
 
 
 class PolyMostCommand : public ICommand {

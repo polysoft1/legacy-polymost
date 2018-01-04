@@ -6,23 +6,34 @@
 
 #include "mattermost.pb.h"
 
-#include "Poco/Net/HTTPClientSession.h"
+#include "Poco/Net/HTTPSClientSession.h"
 #include "Poco/Net/HTTPRequest.h"
 #include "Poco/Net/HTTPResponse.h"
 #include "Poco/JSON/Stringifier.h"
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/String.h"
+#include "Poco/Net/AcceptCertificateHandler.h"
+#include "Poco/Net/InvalidCertificateHandler.h"
+#include "Poco/Net/AcceptCertificateHandler.h"
+#include "Poco/Net/SSLManager.h"
+#include "Poco/Net/SecureStreamSocket.h"
+#include "Poco/Net/Context.h"
+//#include <curlpp/cURLpp.hpp>
+//#include <curlpp/Easy.hpp>
+//#include <curlpp/Options.hpp>
 
 PolyMostCommand::PolyMostCommand(PolyMost& mainReference) : main(mainReference), printOptions(), parseOptions() {
-	server = new MattermostServer("keithserver.net", 8065, "/api/v4");
+	server = new MattermostServer("www.shadowxcraft.net", 2053, "/api/v4");
 	user = nullptr;
 	printOptions.preserve_proto_field_names = true;
 	parseOptions.ignore_unknown_fields = true;
+	Poco::Net::initializeSSL();
 }
 
 PolyMostCommand::~PolyMostCommand() {
 	delete server;
+	Poco::Net::uninitializeSSL();
 }
 
 bool PolyMostCommand::onCommand(std::vector<std::string> args) {
@@ -62,7 +73,9 @@ void handleError(std::string &json, google::protobuf::util::JsonParseOptions par
 }
 
 bool PolyMostCommand::loginCommand(std::vector<std::string> args) {
+	std::cout << "Trying..\n";
 	if (args.size() == 2) {
+		std::cout << "Correct num args\n";
 		if (this->user != nullptr) {
 			std::cout << "Already logged in" << std::endl;
 			return true;
@@ -79,50 +92,86 @@ bool PolyMostCommand::loginCommand(std::vector<std::string> args) {
 			= google::protobuf::util::MessageToJsonString(login, &loginJSON, printOptions);
 
 		if (sendResult.ok()) {
-
+			std::cout << "Formatted..\n";
 			try {
-				Poco::Net::HTTPClientSession clientSession(this->server->getAddress(),
-					this->server->getPort());
-				Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST,
-					this->server->getURI() + "/users/login", Poco::Net::HTTPRequest::HTTP_1_1);
-				Poco::Net::HTTPResponse response;
 
-				request.setKeepAlive(true);
-				request.setContentType("application/json");
-				request.setContentLength(loginJSON.size());
 
-				std::ostream& o = clientSession.sendRequest(request);
+				try {
+					/*std::cout << "About to do it\n";
+					curlpp::Easy myRequest;
+					std::cout << "Request created\n";
+					//myRequest.setOpt(new curlpp::options::Url(std::string("https://" + this->server->getAddress() + ":" + std::to_string(this->server->getPort()) + this->server->getURI())));
+					myRequest.setOpt(new curlpp::options::Url(std::string("https://www.google.com")));
+					std::cout << "Opt\n";
+					myRequest.setOpt(new curlpp::options::SslEngineDefault());
+					myRequest.setOpt(new curlpp::options::SslKey());
+					myRequest.setOpt(curlpp::options::Verbose(true));
+					std::cout << "Opt2\n";
+					myRequest.perform();
+					std::cout << "Worked\n";*/
+					Poco::SharedPtr<Poco::Net::InvalidCertificateHandler> ptrCert = new Poco::Net::AcceptCertificateHandler(false); // Obviously not the most secure..
+					Poco::Net::Context* context = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE, "", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, false, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+					context->disableProtocols(Poco::Net::Context::PROTO_SSLV2 | Poco::Net::Context::PROTO_SSLV3);
+					Poco::Net::SSLManager::instance().initializeClient(0, ptrCert, context);
 
-				o << loginJSON;
+					Poco::Net::SocketAddress address(this->server->getAddress(),
+						this->server->getPort());
+					Poco::Net::SecureStreamSocket socket(address, context);
 
-				std::istream& s = clientSession.receiveResponse(response);
-
-				std::ostringstream os;
-				os << s.rdbuf();
-				std::string responseJSON = os.str();
-
-				if (response.has("Token")) {
-
-					// Get the token
-					std::string token = response.get("Token");
-
-					// Get the user
-					mattermost::User* userResponse = mattermost::User::default_instance().New(); // To keep for later
-					google::protobuf::util::Status responseResult
-						= google::protobuf::util::JsonStringToMessage(responseJSON, userResponse, parseOptions);
-
-					if (responseResult.ok()) {
-						this->user = new MattermostUser(userResponse);
-						this->user->token = token;
-
-						std::cout << "Logged in!" << std::endl;
+					if (socket.havePeerCertificate()) {
+						Poco::Net::X509Certificate cert = socket.peerCertificate();
+						std::cout << cert.issuerName() << "\n";
 					} else {
-						std::cout << "Error parsing result. " << responseResult.ToString() << std::endl;
+						std::cout << "No certificate";
 					}
 
-				} else {
-					handleError(responseJSON, parseOptions);
+					/*Poco::Net::HTTPSClientSession clientSession(this->server->getAddress(),
+						this->server->getPort(), &context);
+					Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST,
+						this->server->getURI() + "/users/login", Poco::Net::HTTPRequest::HTTP_1_1);
+					Poco::Net::HTTPResponse response;
+
+					request.setKeepAlive(true);
+					request.setContentType("application/json");
+					request.setContentLength(loginJSON.size());
+
+					std::ostream& o = clientSession.sendRequest(request);
+
+					o << loginJSON;
+
+					std::istream& s = clientSession.receiveResponse(response);
+
+					std::ostringstream os;
+					os << s.rdbuf();
+					std::string responseJSON = os.str();
+
+					if (response.has("Token")) {
+
+						// Get the token
+						std::string token = response.get("Token");
+
+						// Get the user
+						mattermost::User* userResponse = mattermost::User::default_instance().New(); // To keep for later
+						google::protobuf::util::Status responseResult
+							= google::protobuf::util::JsonStringToMessage(responseJSON, userResponse, parseOptions);
+
+						if (responseResult.ok()) {
+							this->user = new MattermostUser(userResponse);
+							this->user->token = token;
+
+							std::cout << "Logged in!" << std::endl;
+						} else {
+							std::cout << "Error parsing result. " << responseResult.ToString() << std::endl;
+						}
+
+					} else {
+						handleError(responseJSON, parseOptions);
+					}*/
+				} catch (Poco::Exception& e) {
+					std::cout << "Error: " << e.displayText() << "\n";
+					return false;
 				}
+
 
 			} catch (const std::invalid_argument&) {
 				std::cout << "Invalid port." << std::endl;

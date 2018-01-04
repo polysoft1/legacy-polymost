@@ -35,6 +35,19 @@ add_custom_command(TARGET xml_creation
 # link the app against POCO
 target_link_libraries(PolyMost Poco::Foundation Poco::Util Poco::Net Poco::Data Poco::DataSQLite Poco::XML Poco::JSON Poco::NetSSL Poco::Crypto)
 
+find_package(OpenSSL REQUIRED)
+
+message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
+message("OpenSSL libraries: ${OPENSSL_LIBRARIES}")
+
+include_directories("${OPENSSL_INCLUDE_DIR}")
+#target_link_libraries(PolyMost "${OPENSSL_LIBRARIES}")
+
+include_directories(${CURLPP_INCLUDE})
+include_directories(${CURL_INCLUDE_DIR})
+
+target_link_libraries(PolyMost ${CURLPP_LIB}/curlpp.lib)
+target_link_libraries(PolyMost ${CURL_LIBRARY}/libcurl-d_imp.lib)
 
 if(false AND WIN32)
 	foreach(DLL POCO_MODULES)
