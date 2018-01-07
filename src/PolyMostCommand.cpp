@@ -24,7 +24,7 @@
 //#include <curlpp/Options.hpp>
 
 PolyMostCommand::PolyMostCommand(PolyMost& mainReference) : main(mainReference), printOptions(), parseOptions() {
-	server = new MattermostServer("www.shadowxcraft.net", 2053, "/api/v4");
+	server = new MattermostServer("mattermost.keithserver.net", 443, "/api/v4");
 	user = nullptr;
 	printOptions.preserve_proto_field_names = true;
 	parseOptions.ignore_unknown_fields = true;
@@ -109,15 +109,14 @@ bool PolyMostCommand::loginCommand(std::vector<std::string> args) {
 					std::cout << "Opt2\n";
 					myRequest.perform();
 					std::cout << "Worked\n";*/
-					Poco::SharedPtr<Poco::Net::InvalidCertificateHandler> ptrCert = new Poco::Net::AcceptCertificateHandler(false); // Obviously not the most secure..
-					Poco::Net::Context* context = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE, "", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, false, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
-					context->disableProtocols(Poco::Net::Context::PROTO_SSLV2 | Poco::Net::Context::PROTO_SSLV3);
-					Poco::Net::SSLManager::instance().initializeClient(0, ptrCert, context);
+					Poco::Net::initializeSSL();
+					Poco::SharedPtr<Poco::Net::InvalidCertificateHandler> ptrHandler = new Poco::Net::AcceptCertificateHandler(false);
+					Poco::Net::Context::Ptr ptrContext = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE,
+						"", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+					Poco::Net::SSLManager::instance().initializeClient(0, ptrHandler, ptrContext);
 
-					Poco::Net::SocketAddress address(this->server->getAddress(),
-						this->server->getPort());
-					Poco::Net::SecureStreamSocket socket(address, context);
-
+					Poco::Net::SocketAddress address(server->getAddress(), server->getPort());
+					Poco::Net::SecureStreamSocket socket(address);
 					if (socket.havePeerCertificate()) {
 						Poco::Net::X509Certificate cert = socket.peerCertificate();
 						std::cout << cert.issuerName() << "\n";
@@ -125,8 +124,7 @@ bool PolyMostCommand::loginCommand(std::vector<std::string> args) {
 						std::cout << "No certificate";
 					}
 
-					/*Poco::Net::HTTPSClientSession clientSession(this->server->getAddress(),
-						this->server->getPort(), &context);
+					Poco::Net::HTTPSClientSession clientSession(socket);
 					Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST,
 						this->server->getURI() + "/users/login", Poco::Net::HTTPRequest::HTTP_1_1);
 					Poco::Net::HTTPResponse response;
@@ -166,7 +164,7 @@ bool PolyMostCommand::loginCommand(std::vector<std::string> args) {
 
 					} else {
 						handleError(responseJSON, parseOptions);
-					}*/
+					}
 				} catch (Poco::Exception& e) {
 					std::cout << "Error: " << e.displayText() << "\n";
 					return false;
