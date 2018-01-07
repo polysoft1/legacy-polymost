@@ -76,7 +76,7 @@ bool PolyMostCommand::loginCommand(std::vector<std::string> args) {
 	std::cout << "Trying..\n";
 	if (args.size() == 2) {
 		std::cout << "Correct num args\n";
-		if (this->user != nullptr) {
+		if (this->user != nullptr && this->user->token != "") {
 			std::cout << "Already logged in" << std::endl;
 			return true;
 		}
@@ -115,16 +115,16 @@ bool PolyMostCommand::loginCommand(std::vector<std::string> args) {
 						"", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
 					Poco::Net::SSLManager::instance().initializeClient(0, ptrHandler, ptrContext);
 
-					Poco::Net::SocketAddress address(server->getAddress(), server->getPort());
+				/*	Poco::Net::SocketAddress address(server->getAddress(), server->getPort());
 					Poco::Net::SecureStreamSocket socket(address);
 					if (socket.havePeerCertificate()) {
 						Poco::Net::X509Certificate cert = socket.peerCertificate();
 						std::cout << cert.issuerName() << "\n";
 					} else {
 						std::cout << "No certificate";
-					}
+					}*/
 
-					Poco::Net::HTTPSClientSession clientSession(socket);
+					Poco::Net::HTTPSClientSession clientSession(server->getAddress(), server->getPort(), ptrContext);
 					Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST,
 						this->server->getURI() + "/users/login", Poco::Net::HTTPRequest::HTTP_1_1);
 					Poco::Net::HTTPResponse response;
@@ -220,7 +220,14 @@ bool PolyMostCommand::listTeamsCommand(std::vector<std::string> args) {
 
 		if (toJSONResult.ok()) {
 
-			Poco::Net::HTTPClientSession clientSession(this->server->getAddress(), this->server->getPort());
+			Poco::Net::initializeSSL();
+			Poco::SharedPtr<Poco::Net::InvalidCertificateHandler> ptrHandler = new Poco::Net::AcceptCertificateHandler(false);
+			Poco::Net::Context::Ptr ptrContext = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE,
+				"", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+			Poco::Net::SSLManager::instance().initializeClient(0, ptrHandler, ptrContext);
+
+
+			Poco::Net::HTTPSClientSession clientSession(this->server->getAddress(), this->server->getPort(), ptrContext);
 			Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET, this->server->getURI() + "/users/me/teams", Poco::Net::HTTPRequest::HTTP_1_1);
 			Poco::Net::HTTPResponse response;
 
@@ -295,7 +302,14 @@ bool PolyMostCommand::listChannelsCommand(std::vector<std::string> args) {
 		}
 
 		std::cout << "Getting channels of team " << this->user->team << std::endl;
-		Poco::Net::HTTPClientSession clientSession(this->server->getAddress(), this->server->getPort());
+
+		Poco::Net::initializeSSL();
+		Poco::SharedPtr<Poco::Net::InvalidCertificateHandler> ptrHandler = new Poco::Net::AcceptCertificateHandler(false);
+		Poco::Net::Context::Ptr ptrContext = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE,
+			"", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+		Poco::Net::SSLManager::instance().initializeClient(0, ptrHandler, ptrContext);
+
+		Poco::Net::HTTPSClientSession clientSession(this->server->getAddress(), this->server->getPort(), ptrContext);
 		// https://your-mattermost-url.com/api/v4/users/{user_id}/teams/{team_id}/channels
 		std::cout << this->user << std::endl;
 
@@ -350,8 +364,13 @@ bool PolyMostCommand::selectTeamCommand(std::vector<std::string> args) {
 			std::cout << "Invalid login token." << std::endl;
 			return true;
 		}
+		Poco::Net::initializeSSL();
+		Poco::SharedPtr<Poco::Net::InvalidCertificateHandler> ptrHandler = new Poco::Net::AcceptCertificateHandler(false);
+		Poco::Net::Context::Ptr ptrContext = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE,
+			"", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+		Poco::Net::SSLManager::instance().initializeClient(0, ptrHandler, ptrContext);
 
-		Poco::Net::HTTPClientSession clientSession(this->server->getAddress(), this->server->getPort());
+		Poco::Net::HTTPSClientSession clientSession(this->server->getAddress(), this->server->getPort(), ptrContext);
 		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET,
 			this->server->getURI() + "/teams/name/" + args[0], Poco::Net::HTTPRequest::HTTP_1_1);
 		Poco::Net::HTTPResponse response;
@@ -407,7 +426,13 @@ bool PolyMostCommand::selectChannelCommand(std::vector<std::string> args) {
 			return true;
 		}
 
-		Poco::Net::HTTPClientSession clientSession(this->server->getAddress(), this->server->getPort());
+		Poco::Net::initializeSSL();
+		Poco::SharedPtr<Poco::Net::InvalidCertificateHandler> ptrHandler = new Poco::Net::AcceptCertificateHandler(false);
+		Poco::Net::Context::Ptr ptrContext = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE,
+			"", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+		Poco::Net::SSLManager::instance().initializeClient(0, ptrHandler, ptrContext);
+
+		Poco::Net::HTTPSClientSession clientSession(this->server->getAddress(), this->server->getPort(), ptrContext);
 		// https://your-mattermost-url.com/api/v4/teams/{team_id}/channels/name/{channel_name}
 		Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET, this->server->getURI() + "/teams/" + this->user->team + "/channels/name/" + args[0], Poco::Net::HTTPRequest::HTTP_1_1);
 		Poco::Net::HTTPResponse response;
@@ -480,7 +505,15 @@ bool PolyMostCommand::sendMessageCommand(std::vector<std::string> args) {
 		if (sendResult.ok()) {
 
 			try {
-				Poco::Net::HTTPClientSession clientSession(this->server->getAddress(), this->server->getPort());
+
+				Poco::Net::initializeSSL();
+				Poco::SharedPtr<Poco::Net::InvalidCertificateHandler> ptrHandler = new Poco::Net::AcceptCertificateHandler(false);
+				Poco::Net::Context::Ptr ptrContext = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE,
+					"", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+				Poco::Net::SSLManager::instance().initializeClient(0, ptrHandler, ptrContext);
+
+
+				Poco::Net::HTTPSClientSession clientSession(this->server->getAddress(), this->server->getPort(), ptrContext);
 				Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, this->server->getURI() + "/posts", Poco::Net::HTTPRequest::HTTP_1_1);
 				Poco::Net::HTTPResponse response;
 
