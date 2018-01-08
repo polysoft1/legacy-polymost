@@ -46,8 +46,8 @@ include_directories("${OPENSSL_INCLUDE_DIR}")
 include_directories(${CURLPP_INCLUDE})
 include_directories(${CURL_INCLUDE_DIR})
 
-target_link_libraries(PolyMost ${CURLPP_LIB}/curlpp.lib)
-target_link_libraries(PolyMost ${CURL_LIBRARY}/libcurl-d_imp.lib)
+#target_link_libraries(PolyMost ${CURLPP_LIB}/curlpp.lib)
+#target_link_libraries(PolyMost ${CURL_LIBRARY}/libcurl-d_imp.lib)
 
 if(false AND WIN32)
 	foreach(DLL POCO_MODULES)
