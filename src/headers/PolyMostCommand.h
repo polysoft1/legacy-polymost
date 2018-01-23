@@ -9,16 +9,17 @@
 #include "headers/MattermostUser.h"
 #include "google/protobuf/util/json_util.h"
 #include "Poco/SharedPtr.h"
-
+#include "include/Core.h"
 
 class PolyMostCommand : public ICommand {
 public:
-	PolyMostCommand(PolyMost& main);
+	PolyMostCommand(PolyMost& main, Core& core);
 	~PolyMostCommand();
 	bool onCommand(std::vector<std::string>);
 	std::vector<std::string>* onTabCompletion(std::vector<std::string>, int);
 private:
 	PolyMost& main;
+	Core& core;
 	
 	MattermostUser* user;
 	MattermostServer* server;
