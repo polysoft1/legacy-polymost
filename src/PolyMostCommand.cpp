@@ -1,4 +1,5 @@
 #include "headers/PolyMostCommand.h"
+#include "include/ICommunicator.h"
 
 #include <iostream>
 #include <string>
@@ -23,7 +24,9 @@
 //#include <curlpp/Easy.hpp>
 //#include <curlpp/Options.hpp>
 
-PolyMostCommand::PolyMostCommand(PolyMost& mainReference) : main(mainReference), printOptions(), parseOptions() {
+PolyMostCommand::PolyMostCommand(PolyMost& mainReference, Core& coreReference) : 
+		main(mainReference), core(coreReference), printOptions(), parseOptions() {
+	
 	server = new MattermostServer("mattermost.keithserver.net", 443, "/api/v4");
 	user = nullptr;
 	printOptions.preserve_proto_field_names = true;
@@ -44,15 +47,20 @@ bool PolyMostCommand::onCommand(std::vector<std::string> args) {
 
 		if (Poco::icompare(command, "login") == 0) {
 			return loginCommand(args);
-		} else if (Poco::icompare(command, "teams") == 0) {
+		}
+		else if (Poco::icompare(command, "teams") == 0) {
 			return listTeamsCommand(args);
-		} else if (Poco::icompare(command, "selectteam") == 0) {
+		}
+		else if (Poco::icompare(command, "selectteam") == 0) {
 			return selectTeamCommand(args);
-		} else if (Poco::icompare(command, "selectchannel") == 0) {
+		}
+		else if (Poco::icompare(command, "selectchannel") == 0) {
 			return selectChannelCommand(args);
-		} else if (Poco::icompare(command, "channels") == 0) {
+		}
+		else if (Poco::icompare(command, "channels") == 0) {
 			return listChannelsCommand(args);
-		} else if (Poco::icompare(command, "send") == 0) {
+		}
+		else if (Poco::icompare(command, "send") == 0) {
 			return sendMessageCommand(args);
 		}
 	}
@@ -67,7 +75,8 @@ void handleError(std::string &json, google::protobuf::util::JsonParseOptions par
 
 	if (responseResult.ok()) {
 		std::cout << errorResponse.message() << std::endl;
-	} else {
+	}
+	else {
 		std::cout << "Unknown error " << responseResult.ToString() << std::endl;
 	}
 }
@@ -93,55 +102,19 @@ bool PolyMostCommand::loginCommand(std::vector<std::string> args) {
 
 		if (sendResult.ok()) {
 			std::cout << "Formatted..\n";
+
 			try {
 
 
 				try {
-					/*std::cout << "About to do it\n";
-					curlpp::Easy myRequest;
-					std::cout << "Request created\n";
-					//myRequest.setOpt(new curlpp::options::Url(std::string("https://" + this->server->getAddress() + ":" + std::to_string(this->server->getPort()) + this->server->getURI())));
-					myRequest.setOpt(new curlpp::options::Url(std::string("https://www.google.com")));
-					std::cout << "Opt\n";
-					myRequest.setOpt(new curlpp::options::SslEngineDefault());
-					myRequest.setOpt(new curlpp::options::SslKey());
-					myRequest.setOpt(curlpp::options::Verbose(true));
-					std::cout << "Opt2\n";
-					myRequest.perform();
-					std::cout << "Worked\n";*/
-					Poco::Net::initializeSSL();
-					Poco::SharedPtr<Poco::Net::InvalidCertificateHandler> ptrHandler = new Poco::Net::AcceptCertificateHandler(false);
-					Poco::Net::Context::Ptr ptrContext = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE,
-						"", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
-					Poco::Net::SSLManager::instance().initializeClient(0, ptrHandler, ptrContext);
+					ICommunicator& communicator = core.getCommunicator();
 
-				/*	Poco::Net::SocketAddress address(server->getAddress(), server->getPort());
-					Poco::Net::SecureStreamSocket socket(address);
-					if (socket.havePeerCertificate()) {
-						Poco::Net::X509Certificate cert = socket.peerCertificate();
-						std::cout << cert.issuerName() << "\n";
-					} else {
-						std::cout << "No certificate";
-					}*/
+					StringHTTPRequestMessage message(HTTPMethod::POST, server->getURI() + "/users/login");
+					message.setContent(loginJSON);
+					HTTPResponse response = communicator.sendRequestSync(this->server->getAddress(), this->server->getPort(), message);
 
-					Poco::Net::HTTPSClientSession clientSession(server->getAddress(), server->getPort(), ptrContext);
-					Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST,
-						this->server->getURI() + "/users/login", Poco::Net::HTTPRequest::HTTP_1_1);
-					Poco::Net::HTTPResponse response;
-
-					request.setKeepAlive(true);
-					request.setContentType("application/json");
-					request.setContentLength(loginJSON.size());
-
-					std::ostream& o = clientSession.sendRequest(request);
-
-					o << loginJSON;
-
-					std::istream& s = clientSession.receiveResponse(response);
-
-					std::ostringstream os;
-					os << s.rdbuf();
-					std::string responseJSON = os.str();
+					std::string responseJSON = response.getResponse().str();
+					std::cout << "Response: " << responseJSON << std::endl;
 
 					if (response.has("Token")) {
 
@@ -158,26 +131,32 @@ bool PolyMostCommand::loginCommand(std::vector<std::string> args) {
 							this->user->token = token;
 
 							std::cout << "Logged in!" << std::endl;
-						} else {
+						}
+						else {
 							std::cout << "Error parsing result. " << responseResult.ToString() << std::endl;
 						}
 
-					} else {
+					}
+					else {
 						handleError(responseJSON, parseOptions);
 					}
-				} catch (Poco::Exception& e) {
+				}
+				catch (Poco::Exception& e) {
 					std::cout << "Error: " << e.displayText() << "\n";
 					return false;
 				}
 
 
-			} catch (const std::invalid_argument&) {
+			}
+			catch (const std::invalid_argument&) {
 				std::cout << "Invalid port." << std::endl;
 			}
-		} else {
+		}
+		else {
 			std::cout << "Could not parse input" << std::endl;
 		}
-	} else {
+	}
+	else {
 		std::cout << "Usage: <username/email> <password> NOTE: This is not over a secure connection!" << std::endl;
 	}
 	return true;
@@ -190,7 +169,8 @@ bool PolyMostCommand::listTeamsCommand(std::vector<std::string> args) {
 		if (this->user == nullptr) {
 			std::cout << "Not logged in." << std::endl;
 			return true;
-		} else if (this->user->token.size() == 0) {
+		}
+		else if (this->user->token.size() == 0) {
 			std::cout << "Invalid login token." << std::endl;
 			return true;
 		}
@@ -200,7 +180,8 @@ bool PolyMostCommand::listTeamsCommand(std::vector<std::string> args) {
 			try {
 				int page = std::stoi(args[0], nullptr, 0);
 				pageRequest.set_page(page);
-			} catch (const std::invalid_argument&) {
+			}
+			catch (const std::invalid_argument&) {
 				std::cout << "Invalid page number." << std::endl;
 			}
 		}
@@ -208,7 +189,8 @@ bool PolyMostCommand::listTeamsCommand(std::vector<std::string> args) {
 			try {
 				int page = std::stoi(args[1], nullptr, 0);
 				pageRequest.set_per_page(page);
-			} catch (const std::invalid_argument&) {
+			}
+			catch (const std::invalid_argument&) {
 				std::cout << "Invalid page size." << std::endl;
 			}
 		}
@@ -269,7 +251,8 @@ bool PolyMostCommand::listTeamsCommand(std::vector<std::string> args) {
 					}
 				}*/
 
-			} else {
+			}
+			else {
 				std::ostringstream os;
 				os << s.rdbuf();
 				std::string responseJSON = os.str();
@@ -277,7 +260,8 @@ bool PolyMostCommand::listTeamsCommand(std::vector<std::string> args) {
 			}
 		}
 
-	} else {
+	}
+	else {
 		std::cout << "Usage: teams [page] [per_page]" << std::endl;
 	}
 	return true;
@@ -289,13 +273,16 @@ bool PolyMostCommand::listChannelsCommand(std::vector<std::string> args) {
 		if (this->user == nullptr) {
 			std::cout << "Not logged in." << std::endl;
 			return true;
-		} else if (this->user->token.size() == 0) {
+		}
+		else if (this->user->token.size() == 0) {
 			std::cout << "Invalid login token." << std::endl;
 			return true;
-		} else if (this->user->team.size() == 0) {
+		}
+		else if (this->user->team.size() == 0) {
 			std::cout << "No team selected. Select one with \"mattermost selectteam\"" << std::endl;
 			return true;
-		} else if (this->user->userData == nullptr
+		}
+		else if (this->user->userData == nullptr
 			|| !this->user->userData->has_id()) {
 			std::cout << "No user ID. Login with \"mattermost login\"" << std::endl;
 			return true;
@@ -336,19 +323,22 @@ bool PolyMostCommand::listChannelsCommand(std::vector<std::string> args) {
 		if (response.getStatus() == Poco::Net::HTTPResponse::HTTP_OK) {
 			Poco::JSON::Stringifier::stringify(parsed, std::cout, 1);
 			std::cout << std::endl;
-		} else {
+		}
+		else {
 			Poco::JSON::Object::Ptr userObjectJSON = parsed.extract<Poco::JSON::Object::Ptr>();
 			std::cout << response.getStatus() << " " << response.getReason() << std::endl;
 
 			if (userObjectJSON->has("message")) {
 
 				std::cout << userObjectJSON->get("message").toString() << std::endl;
-			} else {
+			}
+			else {
 				std::cout << "Unknown error" << std::endl;
 			}
 		}
 
-	} else {
+	}
+	else {
 		std::cout << "Usage: channels" << std::endl;
 	}
 	return true;
@@ -360,7 +350,8 @@ bool PolyMostCommand::selectTeamCommand(std::vector<std::string> args) {
 		if (this->user == nullptr) {
 			std::cout << "Not logged in." << std::endl;
 			return true;
-		} else if (this->user->token.size() == 0) {
+		}
+		else if (this->user->token.size() == 0) {
 			std::cout << "Invalid login token." << std::endl;
 			return true;
 		}
@@ -395,14 +386,17 @@ bool PolyMostCommand::selectTeamCommand(std::vector<std::string> args) {
 			if (responseResult.ok()) {
 				std::cout << "Team selected" << std::endl;
 				this->user->team = teamResponse.id();
-			} else {
+			}
+			else {
 				std::cout << "Error parsing result. " << responseResult.ToString() << std::endl;
 			}
-		} else {
+		}
+		else {
 			handleError(responseJSON, parseOptions);
 		}
 
-	} else {
+	}
+	else {
 		std::cout << "Usage: selectteam <name>" << std::endl;
 	}
 	return true;
@@ -414,13 +408,16 @@ bool PolyMostCommand::selectChannelCommand(std::vector<std::string> args) {
 		if (this->user == nullptr) {
 			std::cout << "Not logged in." << std::endl;
 			return true;
-		} else if (this->user->token.size() == 0) {
+		}
+		else if (this->user->token.size() == 0) {
 			std::cout << "Invalid login token." << std::endl;
 			return true;
-		} else if (this->user->team.size() == 0) {
+		}
+		else if (this->user->team.size() == 0) {
 			std::cout << "No team selected. Select one with \"mattermost selectteam\"" << std::endl;
 			return true;
-		} else if (this->user->userData == nullptr
+		}
+		else if (this->user->userData == nullptr
 			|| !this->user->userData->has_id()) {
 			std::cout << "No user ID. Login with \"mattermost login\"" << std::endl;
 			return true;
@@ -459,14 +456,17 @@ bool PolyMostCommand::selectChannelCommand(std::vector<std::string> args) {
 			if (responseResult.ok()) {
 				std::cout << "Channel selected" << std::endl;
 				this->user->channel = channelResponse.id();
-			} else {
+			}
+			else {
 				std::cout << "Error parsing result. " << responseResult.ToString() << std::endl;
 			}
-		} else {
+		}
+		else {
 			handleError(responseJSON, parseOptions);
 		}
 
-	} else {
+	}
+	else {
 		std::cout << "Usage: selectchannel <name>" << std::endl;
 	}
 	return true;
@@ -478,10 +478,12 @@ bool PolyMostCommand::sendMessageCommand(std::vector<std::string> args) {
 		if (this->user == nullptr) {
 			std::cout << "Not logged in." << std::endl;
 			return true;
-		} else if (this->user->token.size() == 0) {
+		}
+		else if (this->user->token.size() == 0) {
 			std::cout << "Invalid login token." << std::endl;
 			return true;
-		} else if (this->user->channel.size() == 0) {
+		}
+		else if (this->user->channel.size() == 0) {
 			std::cout << "No channel selected." << std::endl;
 			return true;
 		}
@@ -541,18 +543,22 @@ bool PolyMostCommand::sendMessageCommand(std::vector<std::string> args) {
 
 					if (responseResult.ok()) {
 						std::cout << "Sent at " << postResponse.create_at() << std::endl;
-					} else {
+					}
+					else {
 						std::cout << "Error parsing result. " << responseResult.ToString() << std::endl;
 					}
-				} else {
+				}
+				else {
 					handleError(responseJSON, parseOptions);
 				}
 
-			} catch (const std::invalid_argument&) {
+			}
+			catch (const std::invalid_argument&) {
 				std::cout << "Invalid port." << std::endl;
 			}
 		}
-	} else {
+	}
+	else {
 		std::cout << "Usage: <username/email> <password> NOTE: This is not over a secure connection!" << std::endl;
 	}
 	return true;

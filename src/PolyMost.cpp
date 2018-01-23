@@ -31,8 +31,8 @@ PolyMost::~PolyMost() {
 
 bool PolyMost::initialize(Core* core) {
 	core->getCommandHandler().registerCommand(new ConnectCommand(), "connect", this);
-	core->getCommandHandler().registerCommand(new PolyMostCommand(*this), "mattermost", this);
-	core->getCommandHandler().registerCommand(new PolyMostCommand(*this), "polymost", this); // alias
+	core->getCommandHandler().registerCommand(new PolyMostCommand(*this, *core), "mattermost", this);
+	core->getCommandHandler().registerCommand(new PolyMostCommand(*this, *core), "polymost", this); // alias
 	this->core = core;
 	std::map<std::string, std::string> map_;
 
