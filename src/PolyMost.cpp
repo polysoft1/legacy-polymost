@@ -16,6 +16,8 @@ POCO_EXPORT_CLASS(PolyMost)
 POCO_END_MANIFEST
 #endif
 
+using namespace Polychat;
+
 std::string PolyMost::getName() {
 	return "PolyMost";
 }
