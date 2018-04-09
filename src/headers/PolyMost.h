@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+using namespace Polychat;
+
 class PolyMost : public IProtocolPlugin {
 public:
 	PolyMost();
