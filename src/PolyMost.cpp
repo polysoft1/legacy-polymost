@@ -5,6 +5,7 @@
 #include "headers/ConnectCommand.h"
 #include "headers/PolyMostCommand.h"
 #include "headers/MattermostAccount.h"
+
 #include <memory>
 #include <string>
 #include <iostream>
@@ -32,9 +33,12 @@ PolyMost::~PolyMost() {
 }
 
 bool PolyMost::initialize(Core* core) {
-	core->getCommandHandler().registerCommand(new ConnectCommand(), "connect", this);
-	core->getCommandHandler().registerCommand(new PolyMostCommand(*this, *core), "mattermost", this);
-	core->getCommandHandler().registerCommand(new PolyMostCommand(*this, *core), "polymost", this); // alias
+	std::shared_ptr<ICommand> connectCommand = std::make_shared<ConnectCommand>();
+	std::shared_ptr<ICommand> polymostCommand = std::make_shared<PolyMostCommand>(*this, *core);
+	
+	core->getCommandHandler().registerCommand(connectCommand, "connect", this);
+	core->getCommandHandler().registerCommand(polymostCommand, "mattermost", this);
+	core->getCommandHandler().registerCommand(polymostCommand, "polymost", this); // alias
 	this->core = core;
 	std::map<std::string, std::string> map_;
 
