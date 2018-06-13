@@ -59,28 +59,28 @@ bool PolyMostCommand::onCommand(std::vector<std::string> args) {
 			return sendMessageCommand(args);
 		}
 	}
-	std::cout << "Commands: login, send, teams, channels, selectteam, selectchannel" << std::endl;
+	core.alert("Commands: login, send, teams, channels, selectteam, selectchannel");
 	return false;
 };
 
-void handleError(std::string &json, google::protobuf::util::JsonParseOptions parseOptions) {
+void PolyMostCommand::handleError(std::string &json, google::protobuf::util::JsonParseOptions parseOptions) {
 	mattermost::Error errorResponse;
 	google::protobuf::util::Status responseResult
 		= google::protobuf::util::JsonStringToMessage(json, &errorResponse, parseOptions);
 
 	if (responseResult.ok()) {
-		std::cout << errorResponse.message() << std::endl;
+		core.alert(errorResponse.message());
 	} else {
-		std::cout << "Unknown error " << responseResult.ToString() << std::endl;
+		core.alert("Unknown error " + responseResult.ToString());
 	}
 }
 
 bool PolyMostCommand::loginCommand(std::vector<std::string> args) {
-	std::cout << "Trying..\n";
+	core.alert("Trying..");
 	if (args.size() == 2) {
-		std::cout << "Correct num args\n";
+		core.alert("Correct num args");
 		if (this->user != nullptr && this->user->token != "") {
-			std::cout << "Already logged in" << std::endl;
+			core.alert("Already logged in");
 			return true;
 		}
 
@@ -95,7 +95,7 @@ bool PolyMostCommand::loginCommand(std::vector<std::string> args) {
 			= google::protobuf::util::MessageToJsonString(login, &loginJSON, printOptions);
 
 		if (sendResult.ok()) {
-			std::cout << "Formatted..\n";
+			core.alert("Formatted..");
 
 			try {
 
@@ -126,29 +126,29 @@ bool PolyMostCommand::loginCommand(std::vector<std::string> args) {
 							this->user = new MattermostUser(userResponse);
 							this->user->token = token;
 
-							std::cout << "Logged in!" << std::endl;
+							core.alert("Logged in!");
 						} else {
-							std::cout << "Error parsing result. " << responseResult.ToString() << std::endl;
+							core.alert("Error parsing result. " + responseResult.ToString());
 						}
 
 					} else {
-						std::cout << "No token." << std::endl;
+						core.alert("No token.");
 						handleError(responseJSON, parseOptions);
 					}
 				} catch (Poco::Exception& e) {
-					std::cout << "Error: " << e.displayText() << "\n";
+					core.alert("Error: " + e.displayText());
 					return false;
 				}
 
 
 			} catch (const std::invalid_argument&) {
-				std::cout << "Invalid port." << std::endl;
+				core.alert("Invalid port.");
 			}
 		} else {
-			std::cout << "Could not parse input" << std::endl;
+			core.alert("Could not parse input");
 		}
 	} else {
-		std::cout << "Usage: <username/email> <password> NOTE: This is not over a secure connection!" << std::endl;
+		core.alert("Usage: <username/email> <password> NOTE: This is not over a secure connection!");
 	}
 	return true;
 }
@@ -158,10 +158,10 @@ bool PolyMostCommand::listTeamsCommand(std::vector<std::string> args) {
 	if (args.size() >= 0 && args.size() <= 2) {
 
 		if (this->user == nullptr) {
-			std::cout << "Not logged in." << std::endl;
+			core.alert("Not logged in.");
 			return true;
 		} else if (this->user->token.size() == 0) {
-			std::cout << "Invalid login token." << std::endl;
+			core.alert("Invalid login token.");
 			return true;
 		}
 
@@ -182,7 +182,7 @@ bool PolyMostCommand::listTeamsCommand(std::vector<std::string> args) {
 		Poco::Dynamic::Var parsed = parser.parse(s);
 
 		int size = parsed.size();
-		std::cout << "Teams: (" << size << ")" << std::endl;
+		core.alert("Teams: (" + size + ")");
 		for (int i = 0; i < size; i++) {
 			mattermost::Team teamsRespons;
 
@@ -191,12 +191,12 @@ bool PolyMostCommand::listTeamsCommand(std::vector<std::string> args) {
 
 			if (responseResult.ok()) {
 				int size = teamsResponse.teams_size();
-				std::cout << "Teams: (" << size << ")" << std::endl;
+				core.alert("Teams: (" + size + ")");
 				for (int i = 0; i < size; i++) {
-					std::cout << "- " << teamsResponse.teams(i).name();
+					core.alert("- " + teamsResponse.teams(i).name());
 				}
 			} else {
-				std::cout << "Error parsing result. " << responseResult.ToString() << " (" << responseJSON << ")" << std::endl;
+				core.alert("Error parsing result. " + responseResult.ToString() + " (" + responseJSON + ")");
 			}
 		}*/
 
@@ -208,7 +208,7 @@ bool PolyMostCommand::listTeamsCommand(std::vector<std::string> args) {
 		*/
 
 	} else {
-		std::cout << "Usage: teams [page] [per_page]" << std::endl;
+		core.alert("Usage: teams [page] [per_page]");
 	}
 	return true;
 }
@@ -217,21 +217,21 @@ bool PolyMostCommand::listChannelsCommand(std::vector<std::string> args) {
 	if (args.size() == 0) {
 
 		if (this->user == nullptr) {
-			std::cout << "Not logged in." << std::endl;
+			core.alert("Not logged in.");
 			return true;
 		} else if (this->user->token.size() == 0) {
-			std::cout << "Invalid login token." << std::endl;
+			core.alert("Invalid login token.");
 			return true;
 		} else if (this->user->team.size() == 0) {
-			std::cout << "No team selected. Select one with \"mattermost selectteam\"" << std::endl;
+			core.alert("No team selected. Select one with \"mattermost selectteam\"");
 			return true;
 		} else if (this->user->userData == nullptr
 			|| !this->user->userData->has_id()) {
-			std::cout << "No user ID. Login with \"mattermost login\"" << std::endl;
+			core.alert("No user ID. Login with \"mattermost login\"");
 			return true;
 		}
 
-		std::cout << "Getting channels of team " << this->user->team << std::endl;
+		core.alert("Getting channels of team " + this->user->team);
 
 		std::string URL = this->server->getURI() + "/users/" + this->user->userData->id() + "/teams/" +
 			this->user->team + "/channels";
@@ -248,22 +248,22 @@ bool PolyMostCommand::listChannelsCommand(std::vector<std::string> args) {
 		Poco::Dynamic::Var parsed = parser.parse(responseJSON);
 
 		Poco::JSON::Stringifier::stringify(parsed, std::cout, 1);
-		std::cout << std::endl;
+		core.alert("");
 
 		/*Poco::JSON::Object::Ptr userObjectJSON = parsed.extract<Poco::JSON::Object::Ptr>();
-		std::cout << response.getStatus() << " " << response.getReason() << std::endl;
+		core.alert response.getStatus() + " " + response.getReason());
 
 		if (userObjectJSON->has("message")) {
 
-			std::cout << userObjectJSON->get("message").toString() << std::endl;
+			core.alert(userObjectJSON->get("message").toString());
 		}
 		else {
-			std::cout << "Unknown error" << std::endl;
+			core.alert("Unknown error");
 		}
 		}*/
 
 	} else {
-		std::cout << "Usage: channels" << std::endl;
+		core.alert("Usage: channels");
 	}
 	return true;
 }
@@ -272,10 +272,10 @@ bool PolyMostCommand::selectTeamCommand(std::vector<std::string> args) {
 	if (args.size() == 1) {
 
 		if (this->user == nullptr) {
-			std::cout << "Not logged in." << std::endl;
+			core.alert("Not logged in.");
 			return true;
 		} else if (this->user->token.size() == 0) {
-			std::cout << "Invalid login token." << std::endl;
+			core.alert("Invalid login token.");
 			return true;
 		}
 
@@ -288,24 +288,24 @@ bool PolyMostCommand::selectTeamCommand(std::vector<std::string> args) {
 		std::string responseJSON = responseContent->getContent();
 
 		// Get the team list object
-		std::cout << "Status: " << response.getStatus() << std::endl;
+		core.alert("Status: " + response.getStatus());
 		if (response.getStatus() == HTTPStatus::HTTP_OK) {
 			mattermost::Team teamResponse;
 			google::protobuf::util::Status responseResult
 				= google::protobuf::util::JsonStringToMessage(responseJSON, &teamResponse, parseOptions);
 
 			if (responseResult.ok()) {
-				std::cout << "Team selected" << std::endl;
+				core.alert("Team selected");
 				this->user->team = teamResponse.id();
 			} else {
-				std::cout << "Error parsing result. " << responseResult.ToString() << std::endl;
+				core.alert("Error parsing result. " + responseResult.ToString());
 			}
 		} else {
 			handleError(responseJSON, parseOptions);
 		}
 
 	} else {
-		std::cout << "Usage: selectteam <name>" << std::endl;
+		core.alert("Usage: selectteam <name>");
 	}
 	return true;
 }
@@ -314,17 +314,17 @@ bool PolyMostCommand::selectChannelCommand(std::vector<std::string> args) {
 	if (args.size() == 1) {
 
 		if (this->user == nullptr) {
-			std::cout << "Not logged in." << std::endl;
+			core.alert("Not logged in.");
 			return true;
 		} else if (this->user->token.size() == 0) {
-			std::cout << "Invalid login token." << std::endl;
+			core.alert("Invalid login token.");
 			return true;
 		} else if (this->user->team.size() == 0) {
-			std::cout << "No team selected. Select one with \"mattermost selectteam\"" << std::endl;
+			core.alert("No team selected. Select one with \"mattermost selectteam\"");
 			return true;
 		} else if (this->user->userData == nullptr
 			|| !this->user->userData->has_id()) {
-			std::cout << "No user ID. Login with \"mattermost login\"" << std::endl;
+			core.alert("No user ID. Login with \"mattermost login\"");
 			return true;
 		}
 
@@ -343,17 +343,17 @@ bool PolyMostCommand::selectChannelCommand(std::vector<std::string> args) {
 				= google::protobuf::util::JsonStringToMessage(responseJSON, &channelResponse, parseOptions);
 
 			if (responseResult.ok()) {
-				std::cout << "Channel selected" << std::endl;
+				core.alert("Channel selected");
 				this->user->channel = channelResponse.id();
 			} else {
-				std::cout << "Error parsing result. " << responseResult.ToString() << std::endl;
+				core.alert("Error parsing result. " + responseResult.ToString());
 			}
 		} else {
 			handleError(responseJSON, parseOptions);
 		}
 
 	} else {
-		std::cout << "Usage: selectchannel <name>" << std::endl;
+		core.alert("Usage: selectchannel <name>");
 	}
 	return true;
 }
@@ -362,13 +362,13 @@ bool PolyMostCommand::sendMessageCommand(std::vector<std::string> args) {
 	if (args.size() > 0) {
 
 		if (this->user == nullptr) {
-			std::cout << "Not logged in." << std::endl;
+			core.alert("Not logged in.");
 			return true;
 		} else if (this->user->token.size() == 0) {
-			std::cout << "Invalid login token." << std::endl;
+			core.alert("Invalid login token.");
 			return true;
 		} else if (this->user->channel.size() == 0) {
-			std::cout << "No channel selected." << std::endl;
+			core.alert("No channel selected.");
 			return true;
 		}
 
@@ -410,20 +410,20 @@ bool PolyMostCommand::sendMessageCommand(std::vector<std::string> args) {
 						= google::protobuf::util::JsonStringToMessage(responseJSON, &postResponse, parseOptions);
 
 					if (responseResult.ok()) {
-						std::cout << "Sent at " << postResponse.create_at() << std::endl;
+						core.alert("Sent at " + postResponse.create_at());
 					} else {
-						std::cout << "Error parsing result. " << responseResult.ToString() << std::endl;
+						core.alert("Error parsing result. " + responseResult.ToString());
 					}
 				} else {
 					handleError(responseJSON, parseOptions);
 				}
 
 			} catch (const std::invalid_argument&) {
-				std::cout << "Invalid port." << std::endl;
+				core.alert("Invalid port.");
 			}
 		}
 	} else {
-		std::cout << "Usage: <username/email> <password> NOTE: This is not over a secure connection!" << std::endl;
+		core.alert("Usage: <username/email> <password> NOTE: This is not over a secure connection!");
 	}
 	return true;
 }
