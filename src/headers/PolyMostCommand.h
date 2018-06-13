@@ -32,6 +32,8 @@ private:
 	bool selectTeamCommand(std::vector<std::string>);
 	bool selectChannelCommand(std::vector<std::string>);
 	bool sendMessageCommand(std::vector<std::string>);
+
+	void handleError(std::string&, google::protobuf::util::JsonParseOptions);
 };
 
 #endif
