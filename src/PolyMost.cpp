@@ -2,8 +2,6 @@
 #define POLYMOST
 
 #include "headers/PolyMost.h"
-#include "headers/ConnectCommand.h"
-#include "headers/PolyMostCommand.h"
 #include "headers/MattermostAccount.h"
 
 #include <memory>
@@ -32,13 +30,7 @@ PolyMost::~PolyMost() {
 
 }
 
-bool PolyMost::initialize(Core* core) {
-	std::shared_ptr<ICommand> connectCommand = std::make_shared<ConnectCommand>();
-	std::shared_ptr<ICommand> polymostCommand = std::make_shared<PolyMostCommand>(*this, *core);
-	
-	core->getCommandHandler().registerCommand(connectCommand, "connect", this);
-	core->getCommandHandler().registerCommand(polymostCommand, "mattermost", this);
-	core->getCommandHandler().registerCommand(polymostCommand, "polymost", this); // alias
+bool PolyMost::initialize(ICore* core) {
 	this->core = core;
 	std::map<std::string, std::string> map_;
 
@@ -51,11 +43,8 @@ std::string PolyMost::getDatabaseName() const {
 	return "polymost";
 }
 
-void PolyMost::login(std::map<std::string, std::string> fields) {
-	MattermostAccount account;
-	Notification notification = LoginSuccessNotification(&account);
-
-	core->getNotificationHandler().notify(&notification);
+std::shared_ptr<IAccount> PolyMost::login(std::map<std::string, std::string> fields) {
+	return nullptr;
 }
 
 #endif

@@ -6,11 +6,6 @@ set(xml_file ${OUTPUT_DIR}/plugin.xml)
 
 set(FULL_SRC ${src} ${PROTO_SRC})
 ADD_LIBRARY(PolyMost SHARED ${FULL_SRC})
-set_target_properties(PolyMost PROPERTIES LINKER_LANGUAGE CXX)
-if(MSVC)
-	SET_TARGET_PROPERTIES(PolyMost PROPERTIES
-		COMPILE_DEFINITIONS "PROTOBUF_USE_DLLS")
-endif()
 
 target_link_libraries(PolyMost ${PROTOBUF_LIBRARIES})
 get_target_property(DYN_INCLUDE_DIRS PolyMost INCLUDE_DIRECTORIES)

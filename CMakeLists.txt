@@ -38,19 +38,6 @@ find_package(Poco REQUIRED ${POCO_MODULES})
 #    message(STATUS "Using OpenSSL ${OPENSSL_VERSION} with directories \"${OPENSSL_INCLUDE_DIRS}\"")
 #endif()
 
-set(Protobuf_USE_STATIC_LIBS FALSE)
-if(DEFINED PROTOBUF_DYN_INSTALL)
-	list(APPEND CMAKE_PREFIX_PATH ${PROTOBUF_DYN_INSTALL})
-endif()
-
-find_package(Protobuf REQUIRED)
-protobuf_generate_cpp(
-	PROTO_SRC
-	PROTO_HDR
-	"mattermost.proto"
-)
-
-
 if(DEFINED CURLPP) 
 	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};${CURLPP})
 	set(CURLPP_INCLUDE ${CURLPP}/include)
