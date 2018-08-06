@@ -12,7 +12,7 @@ SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
 SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${OUTPUT_DIR})
 SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
 
-set(src src/PolyMost.cpp src/ConnectCommand.cpp src/PolyMostCommand.cpp)
+set(src src/PolyMost.cpp)
 include_directories(src)
 
 # define the project
