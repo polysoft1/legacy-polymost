@@ -1,16 +1,16 @@
 #ifndef MATTERMOST_USER_H
 #define MATTERMOST_USER_H
 
-#include "mattermost.pb.h"
 #include <string>
 
 class MattermostUser {
 public:
-	MattermostUser(mattermost::User* user) {
-		userData = user;
-	};
-
-	std::string token = "", team = "", channel = "";
-	mattermost::User* userData;
+	MattermostUser(std::string email,
+		std::string username,
+		std::string first_name,
+		std::string last_name,
+		std::string nickname,
+		std::string locale
+	);
 };
 #endif
