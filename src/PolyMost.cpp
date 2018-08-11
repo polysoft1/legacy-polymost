@@ -4,6 +4,8 @@
 #include "headers/PolyMost.h"
 #include "headers/MattermostAccount.h"
 
+#include <json.hpp>
+
 #include <memory>
 #include <string>
 #include <iostream>
@@ -17,8 +19,11 @@ POCO_END_MANIFEST
 
 using namespace Polychat;
 
-std::string PolyMost::getName() {
+std::string PolyMost::getPluginName() const {
 	return "PolyMost";
+}
+std::string PolyMost::getProtocolName() const {
+	return "mattermost";
 }
 
 PolyMost::PolyMost() {

@@ -21,23 +21,23 @@ public:
 
 	}
 
-	std::string getUID() {
+	virtual std::string getUID() {
+		return uid;
+	}
+	virtual std::string getEmail() {
+		return email;
+	}
+	virtual std::string getUsername() {
 		return username;
 	}
-	std::string getEmail() {
-		return username;
+	virtual std::string getFirstName() {
+		return first_name;
 	}
-	std::string getUsername() {
-		return username;
+	virtual std::string getNickName() {
+		return nickname;
 	}
-	std::string getFirstName() {
-		return username;
-	}
-	std::string getNickName() {
-		return username;
-	}
-	std::string getLocale() {
-		return username;
+	virtual std::string getLocale() {
+		return locale;
 	}
 };
 
