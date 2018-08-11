@@ -45,5 +45,7 @@ if(DEFINED CURLPP)
 endif()
 message("INCLUDE: " ${CURLPP_INCLUDE})
 
+include_directories(${CMAKE_HOME_DIRECTORY}/dependencies/include)
+
 include("${CMAKE_CURRENT_SOURCE_DIR}/static.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/shared.cmake")

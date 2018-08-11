@@ -16,7 +16,8 @@ public:
 
 	~PolyMost();
 
-	virtual std::string getName();
+	virtual std::string getPluginName() const;
+	virtual std::string getProtocolName() const;
 
 	virtual bool initialize(ICore* core);
 
