@@ -24,7 +24,7 @@ public:
 	virtual std::string getDatabaseName() const;
 
 	virtual std::shared_ptr<IAccount> login(std::map<std::string, std::string> fields);
-	virtual const std::vector<LoginField> loginFields() const { return loginFieldsList; };
+	virtual const std::vector<LoginField>& loginFields() const { return loginFieldsList; };
 
 	virtual bool resumeConnections() {
 		return false;

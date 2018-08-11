@@ -27,8 +27,10 @@ std::string PolyMost::getProtocolName() const {
 }
 
 PolyMost::PolyMost() {
-	LoginField loginField = LoginField("email", true, true);
-	loginFieldsList.push_back(loginField);
+	loginFieldsList.push_back(LoginField("host", true, true));
+	loginFieldsList.push_back(LoginField("port", true, true));
+	loginFieldsList.push_back(LoginField("email", true, true));
+	loginFieldsList.push_back(LoginField("password", true, false));
 }
 
 PolyMost::~PolyMost() {
@@ -37,11 +39,8 @@ PolyMost::~PolyMost() {
 
 bool PolyMost::initialize(ICore* core) {
 	this->core = core;
-	std::map<std::string, std::string> map_;
 
-	login(map_);
-
-	return false;
+	return true;
 }
 
 std::string PolyMost::getDatabaseName() const {
@@ -49,7 +48,40 @@ std::string PolyMost::getDatabaseName() const {
 }
 
 std::shared_ptr<IAccount> PolyMost::login(std::map<std::string, std::string> fields) {
-	return nullptr;
+	// TODO: Validate args.
+
+	nlohmann::json json;
+	json["login_id"] = fields["email"];
+	json["password"] = fields["password"];
+
+	std::string contentString = json.dump();
+
+	std::shared_ptr<HTTPStringContent> content = std::make_shared<HTTPStringContent>(contentString);
+	content->setContentType("application/json");
+
+	HTTPMessage message(HTTPMethod::POST, "/api/v4/users/login");
+	message.setContent(content);
+
+	ICommunicator& comm = core->getCommunicator();
+
+	HTTPMessage response = comm.sendRequestSync(fields["host"], std::stoi(fields["port"]), message);
+	if (response.getStatus() == HTTPStatus::HTTP_OK) {
+		std::string token = response["token"];
+		auto userObj = nlohmann::json::parse(response.getContent()->getAsString());
+
+		std::string id = userObj["id"];
+		std::string username = userObj["username"];
+		std::string first_name = userObj["first_name"];
+		std::string last_name = userObj["last_name"];
+		std::string nickname = userObj["nickname"];
+		std::string email = userObj["email"];
+		std::string locale = userObj["locale"];
+		std::shared_ptr<MattermostAccount> account =
+			std::make_shared<MattermostAccount>(id, email, username, first_name, last_name, nickname, locale);
+		return account;
+	} else {
+		return nullptr;
+	}
 }
 
 #endif
