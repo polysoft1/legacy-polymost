@@ -10,7 +10,10 @@
  */
 class MattermostAccount : public IAccount {
 private:
+	// Required by all
 	std::string uid, email, username, first_name, last_name, nickname, locale;
+	// For logged in accounts
+	std::string token = "";
 
 public:
 	MattermostAccount(std::string uid, std::string email, std::string username, std::string first_name,
@@ -19,6 +22,14 @@ public:
 		nickname(nickname), locale(locale)
 	{
 
+	}
+
+	void setToken(std::string token) {
+		this->token = token;
+	}
+
+	std::string getToken() {
+		return token;
 	}
 
 	virtual std::string getUID() {
