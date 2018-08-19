@@ -27,10 +27,10 @@ std::string PolyMost::getProtocolName() const {
 }
 
 PolyMost::PolyMost() {
-	loginFieldsList.push_back(LoginField("host", true, true));
-	loginFieldsList.push_back(LoginField("port", true, true));
-	loginFieldsList.push_back(LoginField("email", true, true));
-	loginFieldsList.push_back(LoginField("password", true, false));
+	loginFieldsList.push_back(LoginField("host", true, true, false));
+	loginFieldsList.push_back(LoginField("port", true, true, false));
+	loginFieldsList.push_back(LoginField("email", true, true, false));
+	loginFieldsList.push_back(LoginField("password", true, false, true));
 }
 
 PolyMost::~PolyMost() {

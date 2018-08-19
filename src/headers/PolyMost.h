@@ -26,13 +26,17 @@ public:
 	virtual std::shared_ptr<IAccount> login(std::map<std::string, std::string> fields);
 	virtual const std::vector<LoginField>& loginFields() const { return loginFieldsList; };
 
-	virtual bool resumeConnections() {
+	virtual bool startConnections() {
 		return false;
 	};
 
-	virtual bool suspendConnections() {
+	virtual bool stopConnections() {
 		return false;
 	};
+
+	virtual void requestUpdates() {
+
+	}
 
 private:
 	ICore* core = nullptr;
