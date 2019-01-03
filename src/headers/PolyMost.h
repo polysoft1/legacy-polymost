@@ -1,12 +1,15 @@
 #ifndef POLYMOST_H
 #define POLYMOST_H
 
+#include "headers/MattermostAccount.h"
+
 #include "include/IProtocolPlugin.h"
 #include "include/IPlugin.h"
 #include "include/ICore.h"
 #include "Poco/ClassLibrary.h"
 #include <string>
 #include <vector>
+#include <set>
 
 using namespace Polychat;
 
@@ -34,12 +37,11 @@ public:
 		return false;
 	};
 
-	virtual void requestUpdates() {
-
-	}
+	virtual bool usesTeams() { return true; }
 
 private:
 	ICore* core = nullptr;
 	std::vector<LoginField> loginFieldsList;
+	std::set<std::shared_ptr<MattermostAccount>> accounts;
 };
 #endif

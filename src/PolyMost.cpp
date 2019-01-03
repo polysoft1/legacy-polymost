@@ -4,6 +4,8 @@
 #include "headers/PolyMost.h"
 #include "headers/MattermostAccount.h"
 
+#include "include/ICommunicator.h"
+
 #include <json.hpp>
 
 #include <memory>
@@ -27,8 +29,7 @@ std::string PolyMost::getProtocolName() const {
 }
 
 PolyMost::PolyMost() {
-	loginFieldsList.push_back(LoginField("host", true, true, false));
-	loginFieldsList.push_back(LoginField("port", true, true, false));
+	loginFieldsList.push_back(LoginField("address", true, true, false));
 	loginFieldsList.push_back(LoginField("email", true, true, false));
 	loginFieldsList.push_back(LoginField("password", true, false, true));
 }
@@ -64,7 +65,12 @@ std::shared_ptr<IAccount> PolyMost::login(std::map<std::string, std::string> fie
 
 	ICommunicator& comm = core->getCommunicator();
 
-	HTTPMessage response = comm.sendRequestSync(fields["host"], std::stoi(fields["port"]), message);
+	std::string host;
+	unsigned int port;
+	bool ssl;
+	ICommunicator::parseAddress(fields["address"], host, port, ssl);
+
+	HTTPMessage response = comm.sendRequestSync(fields["host"], std::stoi(fields["port"]), ssl, message);
 	if (response.getStatus() == HTTPStatus::HTTP_OK) {
 		std::string token = response["token"];
 		auto userObj = nlohmann::json::parse(response.getContent()->getAsString());
@@ -76,9 +82,11 @@ std::shared_ptr<IAccount> PolyMost::login(std::map<std::string, std::string> fie
 		std::string nickname = userObj["nickname"];
 		std::string email = userObj["email"];
 		std::string locale = userObj["locale"];
-		std::shared_ptr<MattermostAccount> account =
-			std::make_shared<MattermostAccount>(id, email, username, first_name, last_name, nickname, locale);
-		return account;
+
+		auto account = accounts.emplace(std::make_shared<MattermostAccount>(id, email,
+			username, first_name, last_name, nickname, locale, host, port, ssl, *core, *this));
+
+		return *account.first;
 	} else {
 		return nullptr;
 	}
