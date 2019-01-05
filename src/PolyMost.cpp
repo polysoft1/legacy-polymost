@@ -70,7 +70,7 @@ std::shared_ptr<IAccount> PolyMost::login(std::map<std::string, std::string> fie
 	bool ssl;
 	ICommunicator::parseAddress(fields["address"], host, port, ssl);
 
-	HTTPMessage response = comm.sendRequestSync(fields["host"], std::stoi(fields["port"]), ssl, message);
+	HTTPMessage response = comm.sendRequestSync(host, port, ssl, message);
 	if (response.getStatus() == HTTPStatus::HTTP_OK) {
 		std::string token = response["token"];
 		auto userObj = nlohmann::json::parse(response.getContent()->getAsString());
