@@ -12,7 +12,11 @@ void MattermostAccount::requestUpdates() {
 	nlohmann::json teamsJSON = nlohmann::json::parse(teamsResponseContent->getAsString());
 
 	IConversationManager& conversationManager = core.getConversationManager();
-	auto existingTeamsRef = conversationManager.getTeams(&protocol);
+	auto existingTeams = conversationManager.getTeams(&protocol);
+
+	// Set is to store which teams have been processed from the server's
+	// JSON, so we know which ones don't exist, allowing us to archive them.
+	std::set<std::string> serverTeamIDs;
 	/*std::map<std::string, std::shared_ptr<ITeam>> existingTeams =
 		std::map<std::string, std::shared_ptr<ITeam>>(existingTeamsRef.cbegin(), existingTeamsRef.cend());*/
 
@@ -23,14 +27,26 @@ void MattermostAccount::requestUpdates() {
 		std::string displayName = element.at("display_name").get<std::string>();
 		std::string name = element.at("name").get<std::string>();
 		std::string description = element.at("description").get<std::string>();
-		// TODO: Properly update it.
-		/*if (!existingTeams.erase(id)) {
-			// Doesn't exist!
-			conversationManager.addConversation(id,
-				account, CONVERSATION_TYPE type, std::shared_ptr<ITeam> team,
-				std::string title = "Conversation");
-		}*/
-		
+
+		serverTeamIDs.insert(id);
+
+		// Add team if it does not exist.
+		auto existingTeamItr = existingTeams.find(id);
+		if (existingTeamItr == existingTeams.end()) {
+			// Adds it
+			std::shared_ptr<ITeam> newTeam = conversationManager.addTeam(id, &protocol, displayName, name);
+			newTeam->setDescription(description);
+		}
+		else {
+			// Gets it to ensure it's up to date.
+			std::shared_ptr<ITeam> existingTeam = existingTeamItr->second;
+			if (existingTeam->getName().compare(name) != 0)
+				existingTeam->setName(name);
+			if (existingTeam->getDisplayName().compare(displayName) != 0)
+				existingTeam->setDisplayName(displayName);
+			if (existingTeam->getDescription().compare(description) != 0)
+				existingTeam->setDescription(description);
+		}
 	}
 
 	//HTTPMessage message(HTTPMethod::GET, "/api/v4/users/me/teams/{team_id}/ch");
