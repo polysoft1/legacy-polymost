@@ -1,8 +1,3 @@
-#ifndef POLYMOST_H
-#define POLYMOST_H
-
-#include "headers/MattermostAccount.h"
-
 #include "include/IProtocolPlugin.h"
 #include "include/IPlugin.h"
 #include "include/ICore.h"
@@ -12,6 +7,8 @@
 #include <set>
 
 using namespace Polychat;
+
+class MattermostAccountSession;
 
 class PolyMost : public IProtocolPlugin {
 public:
@@ -26,8 +23,13 @@ public:
 
 	virtual std::string getDatabaseName() const;
 
-	virtual std::shared_ptr<IAccount> login(std::map<std::string, std::string> fields);
+	virtual AUTH_RESULT login(std::map<std::string, std::string> fields, IAccount& login);
+
 	virtual const std::vector<LoginField>& loginFields() const { return loginFieldsList; };
+
+	virtual bool connectionsActive() {
+		return true;
+	}
 
 	virtual bool startConnections() {
 		return false;
@@ -42,6 +44,5 @@ public:
 private:
 	ICore* core = nullptr;
 	std::vector<LoginField> loginFieldsList;
-	std::set<std::shared_ptr<MattermostAccount>> accounts;
+	std::set<std::shared_ptr<MattermostAccountSession>> sessions;
 };
-#endif
