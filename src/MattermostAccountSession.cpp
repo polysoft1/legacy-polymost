@@ -60,7 +60,7 @@ void MattermostAccountSession::updateTeams() {
 			auto existingTeamItr = existingTeams.find(id);
 			if (existingTeamItr == existingTeams.end()) {
 				// Adds it
-				std::shared_ptr<ITeam> newTeam = coreAccount.addTeam(id, displayName, name);
+				std::shared_ptr<ITeam> newTeam = coreAccount.loadTeam(id, displayName, name);
 				newTeam->setDescription(description);
 			} else {
 				// Gets it to ensure it's up to date.
@@ -132,7 +132,7 @@ void MattermostAccountSession::updateConversations(ITeam& team) {
 				if (!teamId.empty())
 					newConversation = team.addConversation(id, parsedType, displayName);
 				else
-					newConversation = coreAccount.addConversation(id, parsedType, displayName);
+					newConversation = coreAccount.loadConversation(id, parsedType, displayName);
 
 				newConversation->setDescription(description);
 				newConversation->setName(name);
