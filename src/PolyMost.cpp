@@ -14,9 +14,11 @@
 
 #ifndef POLYMOST_MANIFEST
 #define POLYMOST_MANIFEST
-POCO_BEGIN_MANIFEST(IPlugin)
-POCO_EXPORT_CLASS(PolyMost)
-POCO_END_MANIFEST
+namespace PolyMostManifest {
+	POCO_BEGIN_MANIFEST(IPlugin)
+		POCO_EXPORT_CLASS(PolyMost)
+		POCO_END_MANIFEST
+}
 #endif
 
 using namespace Polychat;
@@ -73,11 +75,11 @@ AUTH_RESULT PolyMost::login(std::map<std::string, std::string> fields, IAccount&
 
 	ICommunicator& comm = core->getCommunicator();
 
-	std::string host;
+	std::string host, uri;
 	unsigned int port;
 	bool ssl;
 	
-	if (!ICommunicator::parseAddress(fields["address"], host, port, ssl))
+	if (!ICommunicator::parseAddress(fields["address"], host, port, ssl, uri))
 		return AUTH_RESULT::FAIL_INVALID_ADDRESS;
 
 	HTTPMessage response = comm.sendRequestSync(host, port, ssl, message);
