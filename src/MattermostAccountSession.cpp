@@ -1,15 +1,43 @@
 #include "MattermostAccountSession.h"
 #include "include/ITeam.h"
 #include "PolyMost.h"
-
+#include <chrono>
 
 MattermostAccountSession::MattermostAccountSession(Polychat::IAccount& coreAccount, std::string host,
 	unsigned int port, bool ssl, std::string token, Polychat::ICore& core) :
 	coreAccount(coreAccount), core(core), host(host), ssl(ssl), token(token), port(port)
 {
-	bool tokenIsValid = true;
+	tokenIsValid = true;
+
+	webSocketConnection = core.getCommunicator().initWebsocket(host, port, ssl, "/api/v4/websocket");
+	webSocketConnection->setOnStringReceived(std::bind(&MattermostAccountSession::onWSMessageReceived, this, std::placeholders::_1));
+	webSocketConnection->setOnWebsocketOpen(std::bind(&MattermostAccountSession::onWSOpen, this));
+	webSocketConnection->open();
 }
 
+void MattermostAccountSession::onWSMessageReceived(std::string msg) {
+	nlohmann::json json = nlohmann::json::parse(msg);
+	nlohmann::json::iterator seqFindResult = json.find("seq");
+	if (seqFindResult == json.end()) {
+		core.alert("Websocket acknowledgement from server: " + msg);
+	} else {
+		core.alert("Websocket from server: " + msg);
+
+		//std::string response = "{\"status\": \"OK\", \"seq_reply\": " + std::to_string(seqFindResult->get<int>()) + " }";
+		//core.alert("Responding with " + response);
+		//webSocketConnection->sendFrame(response.c_str(), response.length(), true);
+	}
+}
+
+void MattermostAccountSession::onWSOpen() {
+	std::string authChallenge = "{ \"seq\": 1, \"action\" : \"authentication_challenge\", \"data\" : { \"token\": \"" + token + "\" } }";
+	std::cout << "Sending " << authChallenge << " with length " << authChallenge.length() << std::endl;
+	webSocketConnection->send(authChallenge.data(), authChallenge.length(), true);
+}
+
+void MattermostAccountSession::onWSClose() {
+	// TODO: Try reopening?
+}
 
 void MattermostAccountSession::refresh(std::shared_ptr<IConversation> currentlyViewedConversation) {
 	updateTeams();
