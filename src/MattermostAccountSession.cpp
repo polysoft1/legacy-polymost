@@ -1,12 +1,15 @@
 #include "MattermostAccountSession.h"
 #include "include/ITeam.h"
 #include "PolyMost.h"
+#include "include/Message.h"
 #include <chrono>
+#include <memory>
 
 MattermostAccountSession::MattermostAccountSession(Polychat::IAccount& coreAccount, std::string host,
 	unsigned int port, bool ssl, std::string token, Polychat::ICore& core) :
 	coreAccount(coreAccount), core(core), host(host), ssl(ssl), token(token), port(port)
 {
+	loadEventFunctions();
 	tokenIsValid = true;
 
 	webSocketConnection = core.getCommunicator().initWebsocket(host, port, ssl, "/api/v4/websocket");
@@ -23,9 +26,17 @@ void MattermostAccountSession::onWSMessageReceived(std::string msg) {
 	} else {
 		core.alert("Websocket from server: " + msg);
 
-		//std::string response = "{\"status\": \"OK\", \"seq_reply\": " + std::to_string(seqFindResult->get<int>()) + " }";
-		//core.alert("Responding with " + response);
-		//webSocketConnection->sendFrame(response.c_str(), response.length(), true);
+		nlohmann::json eventJSON = nlohmann::json::parse(msg);
+		std::string eventName = eventJSON["event"];
+
+		std::function<void(MattermostAccountSession*, nlohmann::json)> funcForEvent = eventMap[eventName];
+
+		if (funcForEvent) {
+			nlohmann::json eventData = eventJSON["data"];
+			funcForEvent(this, eventData);
+		} else {
+			core.alert("Unknown event \"" + eventName + "\"");
+		}
 	}
 }
 
@@ -33,6 +44,39 @@ void MattermostAccountSession::onWSOpen() {
 	std::string authChallenge = "{ \"seq\": 1, \"action\" : \"authentication_challenge\", \"data\" : { \"token\": \"" + token + "\" } }";
 	std::cout << "Sending " << authChallenge << " with length " << authChallenge.length() << std::endl;
 	webSocketConnection->send(authChallenge.data(), authChallenge.length(), true);
+}
+
+
+void MattermostAccountSession::loadEventFunctions() {
+	eventMap["posted"] = &MattermostAccountSession::onPost;
+}
+
+std::shared_ptr<Polychat::Message> getMsgFromJSON(nlohmann::json postJSON) {
+	std::shared_ptr<Polychat::Message> newMSG = std::make_shared<Polychat::Message>();
+	newMSG->id = postJSON.at("id").get<std::string>();
+	newMSG->uid = postJSON.at("user_id").get<std::string>();
+	newMSG->channelId = postJSON.at("channel_id").get<std::string>();
+	newMSG->createdAt = postJSON.at("create_at").get<long long>();
+	newMSG->updatedAt = postJSON.at("update_at").get<long long>();
+	newMSG->editedAt = postJSON.at("edit_at").get<long long>();
+	newMSG->deletedAt = postJSON.at("delete_at").get<long long>();
+	newMSG->msgContent = postJSON.at("message").get<std::string>();
+
+	return newMSG;
+}
+
+void MattermostAccountSession::onPost(nlohmann::json json) {
+	std::string postJSONString = json["post"];
+	nlohmann::json postJSON = nlohmann::json::parse(postJSONString);
+	core.alert("On post event function called with text \"" + postJSON.at("message").get<std::string>() + "\"");
+	auto conversationList = coreAccount.getConversations();
+	std::string conversationID = postJSON.at("channel_id").get<std::string>();
+	auto conversation = conversationList.find(conversationID);
+	if (conversation != conversationList.end()) {
+		conversation->second->loadMessage(getMsgFromJSON(postJSON));
+	} else {
+		core.alert("Could not find conversation on post event");
+	}
 }
 
 void MattermostAccountSession::onWSClose() {
