@@ -36,6 +36,12 @@ private:
 	// only support 1 account per connection.
 	std::shared_ptr<Polychat::IWebSocket> webSocketConnection;
 
+	// Mapping events to the functions that handle them
+	std::map<std::string, std::function<void(MattermostAccountSession*, nlohmann::json)>> eventMap;
+
+	void loadEventFunctions();
+	void onPost(nlohmann::json json);
+
 	/**
 	 * Update the teams.
 	 */
