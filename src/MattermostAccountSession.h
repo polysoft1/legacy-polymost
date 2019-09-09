@@ -2,6 +2,7 @@
 #define MATTERMOST_ACCOUNT
 
 #include <string>
+#include <map>
 #include "include/IProtocolSession.h"
 #include "include/ICore.h"
 #include "include/ITeam.h"
@@ -43,6 +44,10 @@ private:
 	void updateConversations(ITeam& team);
 
 	static CONVERSATION_TYPE getTypeFromChar(char);
+
+	void onWSMessageReceived(std::string);
+	void onWSOpen();
+	void onWSClose();
 public:
 	MattermostAccountSession(Polychat::IAccount& coreAccount, std::string host,
 		unsigned int port, bool ssl, std::string token, Polychat::ICore& core);

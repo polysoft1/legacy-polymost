@@ -45,6 +45,16 @@ if(DEFINED CURLPP)
 endif()
 message("INCLUDE: " ${CURLPP_INCLUDE})
 
+
+if(DEFINED WEBSOCKETPP) 
+	include_directories(${WEBSOCKETPP})
+	include_directories(${ASIO})
+	add_compile_definitions(ASIO_STANDALONE)
+	add_compile_definitions(_WEBSOCKETPP_CPP11_RANDOM_DEVICE_)
+	add_compile_definitions(_WEBSOCKETPP_CPP11_TYPE_TRAITS_)
+	add_compile_definitions(_HAS_AUTO_PTR_ETC=1)
+endif()
+
 include_directories(${CMAKE_HOME_DIRECTORY}/dependencies/include)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/static.cmake")
