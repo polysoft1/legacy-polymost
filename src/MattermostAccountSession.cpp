@@ -84,12 +84,7 @@ void MattermostAccountSession::onWSClose() {
 }
 
 void MattermostAccountSession::refresh(std::shared_ptr<IConversation> currentlyViewedConversation) {
-	updateTeams();
-	auto teams = coreAccount.getTeams();
-	for (auto const& teamPair : teams)
-	{
-		updateConversations(*teamPair.second.get());
-	}
+	updateTeams(true);
 }
 
 void MattermostAccountSession::updatePosts(IConversation& conversation, int limit) {
@@ -100,133 +95,136 @@ bool MattermostAccountSession::isValid() {
 	return tokenIsValid;
 }
 
-void MattermostAccountSession::updateTeams() {
+void MattermostAccountSession::updateTeams(bool updateConvs) {
 	Polychat::HTTPMessage getTeamsMessage(Polychat::HTTPMethod::GET, "/api/v4/users/me/teams");
 	getTeamsMessage.setAuthorization("Bearer", token);
-	Polychat::HTTPMessage teamsResponse = core.getCommunicator().sendRequestSync(host,
-		port, ssl, getTeamsMessage);
+	core.getCommunicator().sendRequest(host, port, ssl, getTeamsMessage,
+		[this, updateConvs](HTTPMessage teamsResponse) {
 
-	std::shared_ptr<Polychat::IHTTPContent> teamsResponseContent = teamsResponse.getContent();
-	if (teamsResponse.getStatus() == HTTPStatus::HTTP_OK) {
-		nlohmann::json teamsJSON = nlohmann::json::parse(teamsResponseContent->getAsString());
+			std::shared_ptr<Polychat::IHTTPContent> teamsResponseContent = teamsResponse.getContent();
+			if (teamsResponse.getStatus() == HTTPStatus::HTTP_OK) {
+				nlohmann::json teamsJSON = nlohmann::json::parse(teamsResponseContent->getAsString());
 
-		auto existingTeams = coreAccount.getTeams();
+				auto existingTeams = coreAccount.getTeams();
 
-		// Set is to store which teams have been processed from the server's
-		// JSON, so we know which ones don't exist, allowing us to archive them.
-		std::set<std::string> serverTeamIDs;
-		/*std::map<std::string, std::shared_ptr<ITeam>> existingTeams =
-			std::map<std::string, std::shared_ptr<ITeam>>(existingTeamsRef.cbegin(), existingTeamsRef.cend());*/
+				// Set is to store which teams have been processed from the server's
+				// JSON, so we know which ones don't exist, allowing us to archive them.
+				std::set<std::string> serverTeamIDs;
+				/*std::map<std::string, std::shared_ptr<ITeam>> existingTeams =
+					std::map<std::string, std::shared_ptr<ITeam>>(existingTeamsRef.cbegin(), existingTeamsRef.cend());*/
 
-			// Goes through each team to ensure that the core has it stored.
-			// For each team, goes through all conversations.
-		for (auto& element : teamsJSON) {
-			std::string id = element.at("id").get<std::string>();
-			std::string displayName = element.at("display_name").get<std::string>();
-			std::string name = element.at("name").get<std::string>();
-			std::string description = element.at("description").get<std::string>();
+					// Goes through each team to ensure that the core has it stored.
+					// For each team, goes through all conversations.
+				for (auto& element : teamsJSON) {
+					std::string id = element.at("id").get<std::string>();
+					std::string displayName = element.at("display_name").get<std::string>();
+					std::string name = element.at("name").get<std::string>();
+					std::string description = element.at("description").get<std::string>();
 
-			serverTeamIDs.insert(id);
+					serverTeamIDs.insert(id);
 
-			// Add team if it does not exist.
-			auto existingTeamItr = existingTeams.find(id);
-			if (existingTeamItr == existingTeams.end()) {
-				// Adds it
-				std::shared_ptr<ITeam> newTeam = coreAccount.loadTeam(id, displayName, name);
-				newTeam->setDescription(description);
+					// Add team if it does not exist.
+					auto existingTeamItr = existingTeams.find(id);
+					std::shared_ptr<ITeam> team;
+					if (existingTeamItr == existingTeams.end()) {
+						// Adds it
+						team = coreAccount.loadTeam(id, displayName, name);
+						team->setDescription(description);
+					} else {
+						// Gets it to ensure it's up to date.
+						team = existingTeamItr->second;
+						if (team->getName().compare(name) != 0)
+							team->setName(name);
+						if (team->getDisplayName().compare(displayName) != 0)
+							team->setDisplayName(displayName);
+						if (team->getDescription().compare(description) != 0)
+							team->setDescription(description);
+					}
+					if (updateConvs)
+						updateConversations(team);
+				}
 			} else {
-				// Gets it to ensure it's up to date.
-				std::shared_ptr<ITeam> existingTeam = existingTeamItr->second;
-				if (existingTeam->getName().compare(name) != 0)
-					existingTeam->setName(name);
-				if (existingTeam->getDisplayName().compare(displayName) != 0)
-					existingTeam->setDisplayName(displayName);
-				if (existingTeam->getDescription().compare(description) != 0)
-					existingTeam->setDescription(description);
+				// TODO: More detailed handling.
+				core.getLogger().write("Unable to update teams. Token: " + token + ". Response from server: "
+					+ std::to_string(static_cast<int>(teamsResponse.getStatus()))
+					+ " " + teamsResponseContent->getAsString(), LogLevel::WARNING);
 			}
-		}
-	} else {
-		// TODO: More detailed handling.
-		core.getLogger().write("Unable to update teams. Token: " + token + ". Response from server: "
-			+ std::to_string(static_cast<int>(teamsResponse.getStatus()))
-			+ " " + teamsResponseContent->getAsString(), LogLevel::WARNING);
-	}
+		});
 }
 
-void MattermostAccountSession::updateConversations(ITeam& team) {
+void MattermostAccountSession::updateConversations(std::shared_ptr<ITeam> team) {
 	// This request gets all of the channels for a user in that team. It also includes a "last_post_at"
 	// field, making it easier to know if the conversation needs updating.Okay
-	Polychat::HTTPMessage getChannelsMessage(Polychat::HTTPMethod::GET, "/api/v4/users/me/teams/" + team.getID() + "/channels");
+	Polychat::HTTPMessage getChannelsMessage(Polychat::HTTPMethod::GET, "/api/v4/users/me/teams/" + team->getID() + "/channels");
 	getChannelsMessage.setAuthorization("Bearer", token);
-	Polychat::HTTPMessage channelsResponse = core.getCommunicator().sendRequestSync(host,
-		port, ssl, getChannelsMessage);
+	core.getCommunicator().sendRequest(host, port, ssl, getChannelsMessage, [this, team](HTTPMessage channelsResponse) {
+			std::shared_ptr<Polychat::IHTTPContent> channelsResponseContent = channelsResponse.getContent();
+			if (channelsResponse.getStatus() == HTTPStatus::HTTP_OK) {
+				nlohmann::json channelsJSON = nlohmann::json::parse(channelsResponseContent->getAsString());
 
-	std::shared_ptr<Polychat::IHTTPContent> channelsResponseContent = channelsResponse.getContent();
-	if (channelsResponse.getStatus() == HTTPStatus::HTTP_OK) {
-		nlohmann::json channelsJSON = nlohmann::json::parse(channelsResponseContent->getAsString());
+				auto existingTeamChannels = team->getConversations();
+				auto existingUserChannels = coreAccount.getConversations();
 
-		auto existingTeamChannels = team.getConversations();
-		auto existingUserChannels = coreAccount.getConversations();
+				// Set is to store which teams have been processed from the server's
+				// JSON, so we know which ones don't exist, allowing us to archive them.
+				std::set<std::string> serverChannelIDs;
+				/*std::map<std::string, std::shared_ptr<ITeam>> existingTeams =
+					std::map<std::string, std::shared_ptr<ITeam>>(existingTeamsRef.cbegin(), existingTeamsRef.cend());*/
 
-		// Set is to store which teams have been processed from the server's
-		// JSON, so we know which ones don't exist, allowing us to archive them.
-		std::set<std::string> serverChannelIDs;
-		/*std::map<std::string, std::shared_ptr<ITeam>> existingTeams =
-			std::map<std::string, std::shared_ptr<ITeam>>(existingTeamsRef.cbegin(), existingTeamsRef.cend());*/
+					// Goes through each team to ensure that the core has it stored.
+					// For each team, goes through all conversations.
+				for (auto& element : channelsJSON) {
+					std::string id = element.at("id").get<std::string>();
+					std::string displayName = element.at("display_name").get<std::string>();
+					std::string name = element.at("name").get<std::string>();
+					std::string description = element.at("header").get<std::string>();
+					std::string type = element.at("type").get<std::string>();
+					std::string teamId = element.at("team_id").get<std::string>();
+					CONVERSATION_TYPE parsedType = getTypeFromChar(type.at(0));
 
-			// Goes through each team to ensure that the core has it stored.
-			// For each team, goes through all conversations.
-		for (auto& element : channelsJSON) {
-			std::string id = element.at("id").get<std::string>();
-			std::string displayName = element.at("display_name").get<std::string>();
-			std::string name = element.at("name").get<std::string>();
-			std::string description = element.at("header").get<std::string>();
-			std::string type = element.at("type").get<std::string>();
-			std::string teamId = element.at("team_id").get<std::string>();
-			CONVERSATION_TYPE parsedType = getTypeFromChar(type.at(0));
+					serverChannelIDs.insert(id);
 
-			serverChannelIDs.insert(id);
+					// Add channel if it does not exist.
+					bool newChannel;
+					std::map<std::string, std::shared_ptr<Polychat::IConversation>>::iterator existingChannelsItr;
+					if (!teamId.empty()) {
+						existingChannelsItr = existingUserChannels.find(id);
+						newChannel = existingChannelsItr == existingUserChannels.end();
+					} else {
+						existingChannelsItr = existingTeamChannels.find(id);
+						newChannel = existingChannelsItr == existingTeamChannels.end();
+					}
 
-			// Add channel if it does not exist.
-			bool newChannel;
-			std::map<std::string, std::shared_ptr<Polychat::IConversation>>::iterator existingChannelsItr;
-			if (!teamId.empty()) {
-				existingChannelsItr = existingUserChannels.find(id);
-				newChannel = existingChannelsItr == existingUserChannels.end();
+					if (newChannel) {
+						// Adds it
+						std::shared_ptr<IConversation> newConversation;
+						if (!teamId.empty())
+							newConversation = team->addConversation(id, parsedType, displayName);
+						else
+							newConversation = coreAccount.loadConversation(id, parsedType, displayName);
+
+						newConversation->setDescription(description);
+						newConversation->setName(name);
+					} else {
+						// Gets it to ensure it's up to date.
+						std::shared_ptr<IConversation> existingConversation = existingChannelsItr->second;
+						if (existingConversation->getName().compare(name) != 0)
+							existingConversation->setName(name);
+						if (existingConversation->getTitle().compare(displayName) != 0)
+							existingConversation->setTitle(displayName);
+						if (existingConversation->getDescription().compare(description) != 0)
+							existingConversation->setDescription(description);
+						if (existingConversation->getType() != parsedType)
+							existingConversation->setType(parsedType);
+					}
+				}
 			} else {
-				existingChannelsItr = existingTeamChannels.find(id);
-				newChannel = existingChannelsItr == existingTeamChannels.end();
+				// TODO: More detailed handling.
+				core.getLogger().write("Unable to update conversations. Token: " + token + ". Response from server: "
+					+ std::to_string(static_cast<int>(channelsResponse.getStatus()))
+					+ " " + channelsResponseContent->getAsString(), LogLevel::WARNING);
 			}
-
-			if (newChannel) {
-				// Adds it
-				std::shared_ptr<IConversation> newConversation;
-				if (!teamId.empty())
-					newConversation = team.addConversation(id, parsedType, displayName);
-				else
-					newConversation = coreAccount.loadConversation(id, parsedType, displayName);
-
-				newConversation->setDescription(description);
-				newConversation->setName(name);
-			} else {
-				// Gets it to ensure it's up to date.
-				std::shared_ptr<IConversation> existingConversation = existingChannelsItr->second;
-				if (existingConversation->getName().compare(name) != 0)
-					existingConversation->setName(name);
-				if (existingConversation->getTitle().compare(displayName) != 0)
-					existingConversation->setTitle(displayName);
-				if (existingConversation->getDescription().compare(description) != 0)
-					existingConversation->setDescription(description);
-				if (existingConversation->getType() != parsedType)
-					existingConversation->setType(parsedType);
-			}
-		}
-	} else {
-		// TODO: More detailed handling.
-		core.getLogger().write("Unable to update conversations. Token: " + token + ". Response from server: "
-			+ std::to_string(static_cast<int>(channelsResponse.getStatus()))
-			+ " " + channelsResponseContent->getAsString(), LogLevel::WARNING);
-	}
+		});
 }
 
 CONVERSATION_TYPE MattermostAccountSession::getTypeFromChar(char input) {

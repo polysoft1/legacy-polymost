@@ -1,3 +1,5 @@
+project(PolyMost)
+
 cmake_minimum_required(VERSION 3.0)
 
 set(OUTPUT_DIR ${CMAKE_HOME_DIRECTORY}/target/)
@@ -19,41 +21,6 @@ include_directories(src)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-if(DEFINED POCO)
-	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};${POCO})
-	message("CMAKE_PREFIX_PATH: " ${CMAKE_PREFIX_PATH})
-endif()
-
-SET(POCO_MODULES Foundation Util Net Data DataSQLite XML JSON NetSSL)
-
-find_package(Poco REQUIRED ${POCO_MODULES})
-
-# Find the POCO paths and libs
-
-#find_package(OpenSSL REQUIRED) 
-#if( OpenSSL_FOUND )
-#    include_directories(${OPENSSL_INCLUDE_DIRS})
-#    link_directories(${OPENSSL_LIBRARIES})
-#    message(STATUS "Using OpenSSL ${OPENSSL_VERSION} with directories \"${OPENSSL_INCLUDE_DIRS}\"")
-#endif()
-
-if(DEFINED CURLPP) 
-	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};${CURLPP})
-	set(CURLPP_INCLUDE ${CURLPP}/include)
-	set(CURLPP_LIB ${CURLPP}/lib)
-endif()
-message("INCLUDE: " ${CURLPP_INCLUDE})
-
-
-if(DEFINED WEBSOCKETPP) 
-	include_directories(${WEBSOCKETPP})
-	include_directories(${ASIO})
-	add_compile_definitions(ASIO_STANDALONE)
-	add_compile_definitions(_WEBSOCKETPP_CPP11_RANDOM_DEVICE_)
-	add_compile_definitions(_WEBSOCKETPP_CPP11_TYPE_TRAITS_)
-	add_compile_definitions(_HAS_AUTO_PTR_ETC=1)
-endif()
 
 include_directories(${CMAKE_HOME_DIRECTORY}/dependencies/include)
 
