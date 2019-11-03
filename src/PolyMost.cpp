@@ -5,21 +5,13 @@
 #include "MattermostAccountSession.h"
 
 #include "include/ICommunicator.h"
+#include "include/IAccountManager.h"
 
 #include <json.hpp>
 
 #include <memory>
 #include <string>
 #include <iostream>
-
-#ifndef POLYMOST_MANIFEST
-#define POLYMOST_MANIFEST
-namespace PolyMostManifest {
-	POCO_BEGIN_MANIFEST(IPlugin)
-		POCO_EXPORT_CLASS(PolyMost)
-		POCO_END_MANIFEST
-}
-#endif
 
 using namespace Polychat;
 
@@ -50,18 +42,19 @@ std::string PolyMost::getDatabaseName() const {
 	return "polymost";
 }
 
-AUTH_RESULT PolyMost::login(std::map<std::string, std::string> fields, IAccount& account) {
+AuthStatus PolyMost::login(std::map<std::string, std::string> fields, IAccount& account) {
 	nlohmann::json json;
 	
 	{ // shrink scope to delete password sooner
 		auto itr = fields.find("email");
 		if (itr == fields.end())
-			return AUTH_RESULT::FAIL_MISSING_FIELDS;
+			return AuthStatus::FAIL_MISSING_FIELDS;
 		json["login_id"] = itr->second;
+		account.setEmail(itr->second);
 
 		itr = fields.find("password");
 		if (itr == fields.end())
-			return AUTH_RESULT::FAIL_MISSING_FIELDS;
+			return AuthStatus::FAIL_MISSING_FIELDS;
 		json["password"] = itr->second;
 	}
 
@@ -80,38 +73,41 @@ AUTH_RESULT PolyMost::login(std::map<std::string, std::string> fields, IAccount&
 	bool ssl;
 	
 	if (!ICommunicator::parseAddress(fields["address"], host, port, ssl, uri))
-		return AUTH_RESULT::FAIL_INVALID_ADDRESS;
+		return AuthStatus::FAIL_INVALID_ADDRESS;
 
-	HTTPMessage response = comm.sendRequestSync(host, port, ssl, message);
-	if (response.getStatus() == HTTPStatus::HTTP_OK) {
-		std::string token = response["Token"];
-		auto userObj = nlohmann::json::parse(response.getContent()->getAsString());
+	comm.sendRequest(host, port, ssl, message, [this, &account, host, port, ssl](HTTPMessage response) {
+			if (response.getStatus() == HTTPStatus::HTTP_OK) {
+				std::string token = response["Token"];
+				auto userObj = nlohmann::json::parse(response.getContent()->getAsString());
 
-		std::string id = userObj["id"];
-		std::string username = userObj["username"];
-		std::string firstName = userObj["first_name"];
-		std::string lastName = userObj["last_name"];
-		std::string nickname = userObj["nickname"];
-		std::string email = userObj["email"];
-		std::string locale = userObj["locale"];
+				std::string id = userObj["id"];
+				std::string username = userObj["username"];
+				std::string firstName = userObj["first_name"];
+				std::string lastName = userObj["last_name"];
+				std::string nickname = userObj["nickname"];
+				std::string email = userObj["email"];
+				std::string locale = userObj["locale"];
 
-		// TODO: What about the situation where the ID differs from the stored account?
-		account.setUID(id);
-		account.setUsername(username);
-		account.setFirstName(firstName);
-		// TODO: Last name
-		account.setNickName(nickname);
-		account.setEmail(email);
-		account.setLocale(locale);
+				// TODO: What about the situation where the ID differs from the stored account?
+				account.setUID(id);
+				account.setUsername(username);
+				account.setFirstName(firstName);
+				// TODO: Last name
+				account.setNickName(nickname);
+				account.setEmail(email);
+				account.setLocale(locale);
 
-		auto session = sessions.emplace(std::make_shared<MattermostAccountSession>(account, host, port, ssl, token, *core));
-		(*session.first)->setToken(token);
-		account.setSession(*session.first);
+				auto session = sessions.emplace(std::make_shared<MattermostAccountSession>(account, host, port, ssl, token, *core));
+				account.setSession(*session.first);
 
-		return AUTH_RESULT::SUCCESS;
-	} else {
-		return AUTH_RESULT::FAIL_OFFLINE_ADDRESS;
-	}
+				core->getAccountManager().alertOfSessionChange(account, AuthStatus::AUTHENTICATED);
+			} else {
+				core->getAccountManager().alertOfSessionChange(account, AuthStatus::FAIL_HTTP_ERROR);
+				core->alert(std::to_string((int)response.getStatus()));
+			}
+		}
+	);
+	return AuthStatus::CONNECTING;
 }
 
 #endif

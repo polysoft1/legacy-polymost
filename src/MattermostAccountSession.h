@@ -45,9 +45,9 @@ private:
 	/**
 	 * Update the teams.
 	 */
-	void updateTeams();
+	void updateTeams(bool updateConversations);
 
-	void updateConversations(ITeam& team);
+	void updateConversations(std::shared_ptr<ITeam> team);
 
 	static CONVERSATION_TYPE getTypeFromChar(char);
 

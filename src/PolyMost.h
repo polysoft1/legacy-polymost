@@ -1,7 +1,6 @@
 #include "include/IProtocolPlugin.h"
 #include "include/IPlugin.h"
 #include "include/ICore.h"
-#include "Poco/ClassLibrary.h"
 #include <string>
 #include <vector>
 #include <set>
@@ -23,7 +22,7 @@ public:
 
 	virtual std::string getDatabaseName() const;
 
-	virtual AUTH_RESULT login(std::map<std::string, std::string> fields, IAccount& login);
+	virtual AuthStatus login(std::map<std::string, std::string> fields, IAccount& login);
 
 	virtual const std::vector<LoginField>& loginFields() const { return loginFieldsList; };
 
