@@ -99,10 +99,10 @@ void MattermostAccountSession::updateTeams(bool updateConvs) {
 	Polychat::HTTPMessage getTeamsMessage(Polychat::HTTPMethod::GET, "/api/v4/users/me/teams");
 	getTeamsMessage.setAuthorization("Bearer", token);
 	core.getCommunicator().sendRequest(host, port, ssl, getTeamsMessage,
-		[this, updateConvs](HTTPMessage teamsResponse) {
+		[this, updateConvs](std::shared_ptr<HTTPMessage> teamsResponse) {
 
-			std::shared_ptr<Polychat::IHTTPContent> teamsResponseContent = teamsResponse.getContent();
-			if (teamsResponse.getStatus() == HTTPStatus::HTTP_OK) {
+			std::shared_ptr<Polychat::IHTTPContent> teamsResponseContent = teamsResponse->getContent();
+			if (teamsResponse->getStatus() == HTTPStatus::HTTP_OK) {
 				nlohmann::json teamsJSON = nlohmann::json::parse(teamsResponseContent->getAsString());
 
 				auto existingTeams = coreAccount.getTeams();
@@ -146,7 +146,7 @@ void MattermostAccountSession::updateTeams(bool updateConvs) {
 			} else {
 				// TODO: More detailed handling.
 				core.getLogger().write("Unable to update teams. Token: " + token + ". Response from server: "
-					+ std::to_string(static_cast<int>(teamsResponse.getStatus()))
+					+ std::to_string(static_cast<int>(teamsResponse->getStatus()))
 					+ " " + teamsResponseContent->getAsString(), LogLevel::WARNING);
 			}
 		});
@@ -157,9 +157,9 @@ void MattermostAccountSession::updateConversations(std::shared_ptr<ITeam> team) 
 	// field, making it easier to know if the conversation needs updating.Okay
 	Polychat::HTTPMessage getChannelsMessage(Polychat::HTTPMethod::GET, "/api/v4/users/me/teams/" + team->getID() + "/channels");
 	getChannelsMessage.setAuthorization("Bearer", token);
-	core.getCommunicator().sendRequest(host, port, ssl, getChannelsMessage, [this, team](HTTPMessage channelsResponse) {
-			std::shared_ptr<Polychat::IHTTPContent> channelsResponseContent = channelsResponse.getContent();
-			if (channelsResponse.getStatus() == HTTPStatus::HTTP_OK) {
+	core.getCommunicator().sendRequest(host, port, ssl, getChannelsMessage, [this, team](std::shared_ptr<HTTPMessage> channelsResponse) {
+			std::shared_ptr<Polychat::IHTTPContent> channelsResponseContent = channelsResponse->getContent();
+			if (channelsResponse->getStatus() == HTTPStatus::HTTP_OK) {
 				nlohmann::json channelsJSON = nlohmann::json::parse(channelsResponseContent->getAsString());
 
 				auto existingTeamChannels = team->getConversations();
@@ -221,7 +221,7 @@ void MattermostAccountSession::updateConversations(std::shared_ptr<ITeam> team) 
 			} else {
 				// TODO: More detailed handling.
 				core.getLogger().write("Unable to update conversations. Token: " + token + ". Response from server: "
-					+ std::to_string(static_cast<int>(channelsResponse.getStatus()))
+					+ std::to_string(static_cast<int>(channelsResponse->getStatus()))
 					+ " " + channelsResponseContent->getAsString(), LogLevel::WARNING);
 			}
 		});

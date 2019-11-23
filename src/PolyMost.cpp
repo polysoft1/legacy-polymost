@@ -75,8 +75,9 @@ AuthStatus PolyMost::login(std::map<std::string, std::string> fields, IAccount& 
 	if (!ICommunicator::parseAddress(fields["address"], host, port, ssl, uri))
 		return AuthStatus::FAIL_INVALID_ADDRESS;
 
-	comm.sendRequest(host, port, ssl, message, [this, &account, host, port, ssl](HTTPMessage response) {
-			if (response.getStatus() == HTTPStatus::HTTP_OK) {
+	comm.sendRequest(host, port, ssl, message, [this, &account, host, port, ssl](std::shared_ptr<HTTPMessage> responsePtr) {
+			if (responsePtr->getStatus() == HTTPStatus::HTTP_OK) {
+				HTTPMessage& response = *responsePtr.get();
 				std::string token = response["Token"];
 				auto userObj = nlohmann::json::parse(response.getContent()->getAsString());
 
@@ -103,7 +104,7 @@ AuthStatus PolyMost::login(std::map<std::string, std::string> fields, IAccount& 
 				core->getAccountManager().alertOfSessionChange(account, AuthStatus::AUTHENTICATED);
 			} else {
 				core->getAccountManager().alertOfSessionChange(account, AuthStatus::FAIL_HTTP_ERROR);
-				core->alert(std::to_string((int)response.getStatus()));
+				core->alert(std::to_string((int)responsePtr->getStatus()));
 			}
 		}
 	);
