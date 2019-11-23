@@ -42,6 +42,6 @@ else()
 endif()
 
 file(READ "${HOME}/resources/plugin.json" json)
-STRING(REPLACE "\"!OS\": {}" "${executable_details}" json_out ${json})
+STRING(REPLACE "\t\t\"!OS\": {}" "${executable_details}" json_out ${json})
 STRING(REPLACE "!PLUGIN_NAME" "polymost" json_out ${json_out})
 file(WRITE "${OUT_DIR}/${JSON_FILE}" "${json_out}")
