@@ -21,4 +21,4 @@ core:
 polymost:
         stage: polymost
         script:
-                - cmake -DPOLYCHAT:STRING="$PWD/../core" . && make
+                - cmake -DPOLYCHAT:STRING="$PWD/core" . && make
