@@ -111,14 +111,27 @@ AuthStatus PolyMost::login(std::map<std::string, std::string> fields, IAccount& 
 	return AuthStatus::CONNECTING;
 }
 
-extern "C" PolyMost* create()
-{
-	return new PolyMost;
-}
+extern "C" {
+#ifdef _WIN32
+	__declspec(dllexport) PolyMost* create()
+	{
+		return new PolyMost;
+	}
 
-extern "C" void destroy(PolyMost *in)
-{
-	delete in;
-}
+	__declspec(dllexport) void destroy(PolyMost * in)
+	{
+		delete in;
+	}
+#else
+	PolyMost* create()
+	{
+		return new PolyMost;
+	}
 
+	void destroy(PolyMost* in)
+	{
+		delete in;
+	}
+#endif
+}
 #endif
