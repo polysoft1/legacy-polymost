@@ -11,7 +11,9 @@
 class PolyMost;
 using namespace Polychat;
 
-class Polychat::IAccount;
+namespace Polychat {
+class IAccount;
+}
 /**
  * Represents a user on Mattermost. Can be the logged in user
  * or just another team member.
