@@ -1,4 +1,4 @@
-# Polychat-QT Dependencies
+# Polymost Dependencies
 This file is intended to keep track of the dependencies that this project uses.
 
 # Format
