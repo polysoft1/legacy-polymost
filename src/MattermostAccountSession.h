@@ -30,6 +30,7 @@ private:
 	std::string host;
 	bool ssl;
 	unsigned int port;
+	std::shared_ptr<IHTTPClient> webClient;
 
 	Polychat::ICore& core;
 
@@ -78,6 +79,8 @@ public:
 	virtual void updatePosts(IConversation& conversation, int limit);
 
 	virtual bool isValid();
+
+	virtual void sendMessageAction(std::shared_ptr<Message>, MessageAction);
 };
 
 #endif // !MATTERMOST_ACCOUNT

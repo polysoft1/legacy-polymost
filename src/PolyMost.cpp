@@ -4,7 +4,7 @@
 #include "PolyMost.h"
 #include "MattermostAccountSession.h"
 
-#include "include/ICommunicator.h"
+#include "include/IWebHelper.h"
 #include "include/IAccountManager.h"
 
 #include <json.hpp>
@@ -66,16 +66,16 @@ AuthStatus PolyMost::login(std::map<std::string, std::string> fields, IAccount& 
 	HTTPMessage message(HTTPMethod::POST, "/api/v4/users/login");
 	message.setContent(content);
 
-	ICommunicator& comm = core->getCommunicator();
+	IWebHelper& web = core->getWebHelper();
 
 	std::string host, uri;
 	unsigned int port;
 	bool ssl;
 	
-	if (!ICommunicator::parseAddress(fields["address"], host, port, ssl, uri))
+	if (!IWebHelper::parseAddress(fields["address"], host, port, ssl, uri))
 		return AuthStatus::FAIL_INVALID_ADDRESS;
-
-	comm.sendRequest(host, port, ssl, message, [this, &account, host, port, ssl](std::shared_ptr<HTTPMessage> responsePtr) {
+	std::shared_ptr<IHTTPClient> webClient = web.initHTTPClient(host, port, ssl);
+	webClient->sendRequest(message, [this, &account, host, port, ssl](std::shared_ptr<HTTPMessage> responsePtr) {
 			if (responsePtr->getStatus() == HTTPStatus::HTTP_OK) {
 				HTTPMessage& response = *responsePtr.get();
 				std::string token = response["Token"];

@@ -7,12 +7,13 @@
 
 MattermostAccountSession::MattermostAccountSession(Polychat::IAccount& coreAccount, std::string host,
 	unsigned int port, bool ssl, std::string token, Polychat::ICore& core) :
-	coreAccount(coreAccount), core(core), host(host), ssl(ssl), token(token), port(port)
+	coreAccount(coreAccount), core(core), host(host), ssl(ssl), token(token), port(port),
+	webClient(core.getWebHelper().initHTTPClient(host, port, ssl))
 {
 	loadEventFunctions();
 	tokenIsValid = true;
 
-	webSocketConnection = core.getCommunicator().initWebsocket(host, port, ssl, "/api/v4/websocket");
+	webSocketConnection = core.getWebHelper().initWebsocket(host, port, ssl, "/api/v4/websocket");
 	webSocketConnection->setOnStringReceived(std::bind(&MattermostAccountSession::onWSMessageReceived, this, std::placeholders::_1));
 	webSocketConnection->setOnWebsocketOpen(std::bind(&MattermostAccountSession::onWSOpen, this));
 	webSocketConnection->open();
@@ -73,7 +74,7 @@ void MattermostAccountSession::onPost(nlohmann::json json) {
 	std::string conversationID = postJSON.at("channel_id").get<std::string>();
 	auto conversation = conversationList.find(conversationID);
 	if (conversation != conversationList.end()) {
-		conversation->second->loadMessage(getMsgFromJSON(postJSON));
+		conversation->second->processMessage(getMsgFromJSON(postJSON));
 	} else {
 		core.alert("Could not find conversation on post event");
 	}
@@ -87,6 +88,11 @@ void MattermostAccountSession::refresh(std::shared_ptr<IConversation> currentlyV
 	updateTeams(true);
 }
 
+void MattermostAccountSession::sendMessageAction(std::shared_ptr<Message>, MessageAction) {
+	core.alert("Not implemented");
+}
+
+
 void MattermostAccountSession::updatePosts(IConversation& conversation, int limit) {
 	// TODO
 }
@@ -98,7 +104,7 @@ bool MattermostAccountSession::isValid() {
 void MattermostAccountSession::updateTeams(bool updateConvs) {
 	Polychat::HTTPMessage getTeamsMessage(Polychat::HTTPMethod::GET, "/api/v4/users/me/teams");
 	getTeamsMessage.setAuthorization("Bearer", token);
-	core.getCommunicator().sendRequest(host, port, ssl, getTeamsMessage,
+	webClient->sendRequest(getTeamsMessage,
 		[this, updateConvs](std::shared_ptr<HTTPMessage> teamsResponse) {
 
 			std::shared_ptr<Polychat::IHTTPContent> teamsResponseContent = teamsResponse->getContent();
@@ -157,7 +163,7 @@ void MattermostAccountSession::updateConversations(std::shared_ptr<ITeam> team) 
 	// field, making it easier to know if the conversation needs updating.Okay
 	Polychat::HTTPMessage getChannelsMessage(Polychat::HTTPMethod::GET, "/api/v4/users/me/teams/" + team->getID() + "/channels");
 	getChannelsMessage.setAuthorization("Bearer", token);
-	core.getCommunicator().sendRequest(host, port, ssl, getChannelsMessage, [this, team](std::shared_ptr<HTTPMessage> channelsResponse) {
+	webClient->sendRequest(getChannelsMessage, [this, team](std::shared_ptr<HTTPMessage> channelsResponse) {
 			std::shared_ptr<Polychat::IHTTPContent> channelsResponseContent = channelsResponse->getContent();
 			if (channelsResponse->getStatus() == HTTPStatus::HTTP_OK) {
 				nlohmann::json channelsJSON = nlohmann::json::parse(channelsResponseContent->getAsString());
