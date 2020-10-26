@@ -68,15 +68,33 @@ std::shared_ptr<Polychat::Message> getMsgFromJSON(nlohmann::json postJSON) {
 
 void MattermostAccountSession::onPost(nlohmann::json json) {
 	std::string postJSONString = json["post"];
+	std::string team_id = json["team_id"];
 	nlohmann::json postJSON = nlohmann::json::parse(postJSONString);
-	core.alert("On post event function called with text \"" + postJSON.at("message").get<std::string>() + "\"");
-	auto conversationList = coreAccount.getConversations();
+	core.alert("On post event function called with text \"" + postJSON.at("message").get<std::string>() + "\" and team " + team_id);
 	std::string conversationID = postJSON.at("channel_id").get<std::string>();
-	auto conversation = conversationList.find(conversationID);
-	if (conversation != conversationList.end()) {
-		conversation->second->processMessage(getMsgFromJSON(postJSON));
+
+	if (team_id.empty()) {
+		auto conversationList = coreAccount.getConversations();
+		auto conversation = conversationList.find(conversationID);
+		if (conversation != conversationList.end()) {
+			conversation->second->processMessage(getMsgFromJSON(postJSON));
+		} else {
+			core.alert("Could not find conversation on post event");
+		}
 	} else {
-		core.alert("Could not find conversation on post event");
+		auto teamList = coreAccount.getTeams();
+		auto team = teamList.find(team_id);
+		if (team != teamList.end()) {
+			auto conversationList = team->second->getConversations();
+			auto conversation = conversationList.find(conversationID);
+			if (conversation != conversationList.end()) {
+				conversation->second->processMessage(getMsgFromJSON(postJSON));
+			} else {
+				core.alert("Could not find conversation on post event");
+			}
+		} else {
+			core.alert("Could not find team on post event");
+		}
 	}
 }
 
@@ -88,8 +106,33 @@ void MattermostAccountSession::refresh(std::shared_ptr<IConversation> currentlyV
 	updateTeams(true);
 }
 
-void MattermostAccountSession::sendMessageAction(std::shared_ptr<Message>, MessageAction) {
-	core.alert("Not implemented");
+void MattermostAccountSession::sendMessageAction(std::shared_ptr<Message> message, MessageAction action) {
+	switch (action) {
+	case MessageAction::EDIT_MESSAGE:
+		// TODO
+	case MessageAction::PIN_MESSAGE:
+	case MessageAction::UNPIN_MESSAGE:
+	case MessageAction::REMOVE_MESSAGE:
+		core.alert("Not implemented");
+		break;
+	case MessageAction::SEND_NEW_MESSAGE:
+		message->sendStatus = SendStatus::SENDING;
+		Polychat::HTTPMessage newPostMessage(Polychat::HTTPMethod::POST, "/api/v4/posts");
+		newPostMessage.setAuthorization("Bearer", token);
+
+		nlohmann::json j;
+		j["channel_id"] = message->channelId;
+		j["message"] = message->msgContent;
+
+		std::shared_ptr<IHTTPContent> messageContent = std::make_shared<HTTPStringContent>(j.dump());
+		newPostMessage.setContent(messageContent);
+		webClient->sendRequest(newPostMessage, [message, this](std::shared_ptr<HTTPMessage> channelsResponse) {
+			if (channelsResponse->getStatus() == HTTPStatus::HTTP_OK)
+				message->sendStatus = SendStatus::SENT;
+			else
+				message->sendStatus = SendStatus::FAILED;
+		});
+	}
 }
 
 
