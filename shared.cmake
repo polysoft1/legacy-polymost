@@ -6,6 +6,8 @@ set(json_file ${OUTPUT_DIR}/plugin.json)
 
 ADD_LIBRARY(PolyMost SHARED ${src})
 
+target_link_libraries(PolyMost PRIVATE nlohmann_json::nlohmann_json)
+
 get_target_property(DYN_INCLUDE_DIRS PolyMost INCLUDE_DIRECTORIES)
 list(APPEND DYN_INCLUDE_DIRS ${PROJECT_SOURCE_DIR})
 list(APPEND DYN_INCLUDE_DIRS ${PROJECT_BINARY_DIR})

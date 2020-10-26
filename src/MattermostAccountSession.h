@@ -6,7 +6,7 @@
 #include "include/IProtocolSession.h"
 #include "include/ICore.h"
 #include "include/ITeam.h"
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 class PolyMost;
 using namespace Polychat;

@@ -6,6 +6,7 @@ set(xml_file ${OUTPUT_DIR}/plugin.xml)
 
 ADD_LIBRARY(PolyMostStatic STATIC ${src})
 set_target_properties(PolyMostStatic PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(PolyMostStatic PRIVATE nlohmann_json::nlohmann_json)
 
 get_target_property(STATIC_INCLUDE_DIRS PolyMostStatic INCLUDE_DIRECTORIES)
 list(APPEND STATIC_INCLUDE_DIRS ${PROJECT_SOURCE_DIR})
