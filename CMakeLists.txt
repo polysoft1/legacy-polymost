@@ -17,6 +17,10 @@ SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
 set(src src/PolyMost.cpp src/MattermostAccountSession.cpp)
 include_directories(src)
 
+if(UNIX)
+	set(CMAKE_CXX_FLAGS "-D_GLIBCXX_USE_CXX11_ABI=0")
+endif()
+
 find_package(nlohmann_json CONFIG REQUIRED)
 
 # define the project
