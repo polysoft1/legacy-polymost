@@ -1,6 +1,3 @@
-#ifndef POLYMOST
-#define POLYMOST
-
 #include "PolyMost.h"
 #include "MattermostAccountSession.h"
 
@@ -111,6 +108,7 @@ AuthStatus PolyMost::login(std::map<std::string, std::string> fields, IAccount& 
 	return AuthStatus::CONNECTING;
 }
 
+#ifdef POLYMOST_SHARED
 extern "C" {
 #ifdef _WIN32
 	__declspec(dllexport) PolyMost* create()
