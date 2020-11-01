@@ -2,15 +2,18 @@
 #define MATTERMOST_ACCOUNT
 
 #include <string>
+#include <map>
 #include "include/IProtocolSession.h"
 #include "include/ICore.h"
 #include "include/ITeam.h"
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 class PolyMost;
 using namespace Polychat;
 
-class Polychat::IAccount;
+namespace Polychat {
+class IAccount;
+}
 /**
  * Represents a user on Mattermost. Can be the logged in user
  * or just another team member.
@@ -27,6 +30,7 @@ private:
 	std::string host;
 	bool ssl;
 	unsigned int port;
+	std::shared_ptr<IHTTPClient> webClient;
 
 	Polychat::ICore& core;
 
@@ -35,14 +39,24 @@ private:
 	// only support 1 account per connection.
 	std::shared_ptr<Polychat::IWebSocket> webSocketConnection;
 
+	// Mapping events to the functions that handle them
+	std::map<std::string, std::function<void(MattermostAccountSession*, nlohmann::json)>> eventMap;
+
+	void loadEventFunctions();
+	void onPost(nlohmann::json json);
+
 	/**
 	 * Update the teams.
 	 */
-	void updateTeams();
+	void updateTeams(bool updateConversations);
 
-	void updateConversations(ITeam& team);
+	void updateConversations(std::shared_ptr<ITeam> team);
 
 	static CONVERSATION_TYPE getTypeFromChar(char);
+
+	void onWSMessageReceived(std::string);
+	void onWSOpen();
+	void onWSClose();
 public:
 	MattermostAccountSession(Polychat::IAccount& coreAccount, std::string host,
 		unsigned int port, bool ssl, std::string token, Polychat::ICore& core);
@@ -65,6 +79,8 @@ public:
 	virtual void updatePosts(IConversation& conversation, int limit);
 
 	virtual bool isValid();
+
+	virtual void sendMessageAction(std::shared_ptr<Message>, MessageAction);
 };
 
 #endif // !MATTERMOST_ACCOUNT

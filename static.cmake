@@ -4,11 +4,10 @@ include_directories(${POLYCHAT})
 set(executable_filename ${CMAKE_SHARED_LIBRARY_PREFIX}PolyMostStatic${CMAKE_SHARED_LIBRARY_SUFFIX})
 set(xml_file ${OUTPUT_DIR}/plugin.xml)
 
-set(FULL_SRC ${src} ${PROTO_SRC})
-ADD_LIBRARY(PolyMostStatic STATIC ${FULL_SRC})
+ADD_LIBRARY(PolyMostStatic STATIC ${src})
 set_target_properties(PolyMostStatic PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(PolyMostStatic PRIVATE nlohmann_json::nlohmann_json)
 
-target_link_libraries(PolyMostStatic ${PROTOBUF_LIBRARIES})
 get_target_property(STATIC_INCLUDE_DIRS PolyMostStatic INCLUDE_DIRECTORIES)
 list(APPEND STATIC_INCLUDE_DIRS ${PROJECT_SOURCE_DIR})
 list(APPEND STATIC_INCLUDE_DIRS ${PROJECT_BINARY_DIR})
@@ -19,20 +18,3 @@ list(APPEND STATIC_INCLUDE_DIRS ${PROJECT_BINARY_DIR})
 	#target_link_libraries(PolyMostStatic ${POLYCHAT}/target/${CMAKE_SHARED_LIBRARY_PREFIX}PolyChat${CMAKE_SHARED_LIBRARY_SUFFIX})
 #endif()
 set_target_properties(PolyMostStatic PROPERTIES INCLUDE_DIRECTORIES "${STATIC_INCLUDE_DIRS}")
-
-# link the app against POCO
-target_link_libraries(PolyMostStatic Poco::Foundation Poco::Util Poco::Net Poco::Data Poco::DataSQLite Poco::XML Poco::JSON Poco::NetSSL Poco::Crypto)
-
-find_package(OpenSSL REQUIRED)
-
-message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
-message("OpenSSL libraries: ${OPENSSL_LIBRARIES}")
-
-include_directories("${OPENSSL_INCLUDE_DIR}")
-
-include_directories(${CURLPP_INCLUDE})
-include_directories(${CURL_INCLUDE_DIR})
-message("Including ${CURL_INCLUDE_DIR}")
-
-target_link_libraries(PolyMostStatic ${CURLPP_LIB}/libcurlpp.lib)
-target_link_libraries(PolyMostStatic ${CURL_LIBRARY}/libcurl-d_imp.lib)

@@ -1,3 +1,5 @@
+project(PolyMost)
+
 cmake_minimum_required(VERSION 3.0)
 
 set(OUTPUT_DIR ${CMAKE_HOME_DIRECTORY}/target/)
@@ -15,35 +17,16 @@ SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
 set(src src/PolyMost.cpp src/MattermostAccountSession.cpp)
 include_directories(src)
 
+if(UNIX)
+	set(CMAKE_CXX_FLAGS "-D_GLIBCXX_USE_CXX11_ABI=0")
+endif()
+
+find_package(nlohmann_json CONFIG REQUIRED)
+
 # define the project
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-if(DEFINED POCO)
-	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};${POCO})
-	message("CMAKE_PREFIX_PATH: " ${CMAKE_PREFIX_PATH})
-endif()
-
-SET(POCO_MODULES Foundation Util Net Data DataSQLite XML JSON NetSSL)
-
-find_package(Poco REQUIRED ${POCO_MODULES})
-
-# Find the POCO paths and libs
-
-#find_package(OpenSSL REQUIRED) 
-#if( OpenSSL_FOUND )
-#    include_directories(${OPENSSL_INCLUDE_DIRS})
-#    link_directories(${OPENSSL_LIBRARIES})
-#    message(STATUS "Using OpenSSL ${OPENSSL_VERSION} with directories \"${OPENSSL_INCLUDE_DIRS}\"")
-#endif()
-
-if(DEFINED CURLPP) 
-	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};${CURLPP})
-	set(CURLPP_INCLUDE ${CURLPP}/include)
-	set(CURLPP_LIB ${CURLPP}/lib)
-endif()
-message("INCLUDE: " ${CURLPP_INCLUDE})
 
 include_directories(${CMAKE_HOME_DIRECTORY}/dependencies/include)
 
